@@ -495,6 +495,10 @@ export class AwhBookingPage extends BasePage {
     
     // Playwright's fill command inside enterValueForInputElement will automatically wait 
     // for the OTP field to become enabled by the application after the OTP is sent.
+    // Hack: Force enable the input if the UI animation/state is lagging or buggy.
+    await this.page.waitForTimeout(500);
+    await this.otpInput.evaluate((el: HTMLInputElement) => { el.disabled = false; }).catch(() => {});
+    
     await super.enterValueForInputElement(this.otpInput, otp, `${this.enteredOtpLog}: ${otp}`);
     return otp;
   }
