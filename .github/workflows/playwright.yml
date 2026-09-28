@@ -1,4 +1,4 @@
-name: LeadQ Playwright E2E Tests
+name: AWH Hospital Playwright E2E Tests
 on:
   push:
     branches: [ main, master ]

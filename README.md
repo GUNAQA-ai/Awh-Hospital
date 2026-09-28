@@ -110,7 +110,7 @@ The framework contains a production-ready `Jenkinsfile`.
 ### How to run it:
 1. Click **New Item** -> Name it `Hospital Booking Pipeline` -> Select **Pipeline** -> Click OK.
 2. Under Pipeline Definition, select **Pipeline script from SCM**.
-3. SCM: **Git** -> URL: `https://github.com/Guna-coder2000/Leadqautomation.git`.
+3. SCM: **Git** -> URL: `https://github.com/GUNAQA-ai/Awh-Hospital.git`.
 4. Branch Specifier: `*/main` -> Script Path: `Jenkinsfile` -> Save.
 5. Click **Build Now**!
 

@@ -95,14 +95,14 @@ Now that the software and passwords are ready, let's configure the actual projec
 ### Step 1: Download the Code
 Open your VS Code terminal (Click `Terminal` -> `New Terminal` at the top of the screen) and run:
 ```bash
-git clone https://github.com/Guna-coder2000/Leadqautomation.git
-cd Leadqautomation
+git clone https://github.com/GUNAQA-ai/Awh-Hospital.git
+cd Awh-Hospital
 ```
 
 ### Step 2: Configure the `.env` Secrets File
 > [!WARNING]
 > Do not skip this! The framework uses this file to read your passwords. Without it, emails will fail.
-1. In the `Leadqautomation` folder, you will see a file named `.env.example`.
+1. In the `Awh-Hospital` folder, you will see a file named `.env.example`.
 2. Copy it and rename the copy to exactly **`.env`**.
 3. Open `.env` and fill it in:
    - `SMTP_USER`: Your Gmail address.

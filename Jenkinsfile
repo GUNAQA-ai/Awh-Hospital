@@ -13,7 +13,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 // Copy the local .env file so Jenkins has the email credentials
-                bat 'copy "C:\\Users\\gunasekhar.p\\OneDrive - TestPerform\\Desktop\\Leadq-automation\\.env" .env || echo No .env file found'
+                bat 'copy "C:\\Users\\gunasekhar.p\\OneDrive - TestPerform\\Desktop\\Aws_Hospital\\.env" .env || echo No .env file found'
                 bat 'npm install'
             }
         }
