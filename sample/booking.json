@@ -24,7 +24,7 @@
           "pincode": "520001",
           "state": "Andhra Pradesh",
           "city": "Vijayawada",
-          "phone": "9998887773",
+          "phone": "9998887776",
           "otp": "123456"
         }
       },
@@ -55,8 +55,9 @@
       "newCarePackage": "Advanced"
     },
     "existingPatient": {
+      "registeredPhone": "9998887776",
       "registered": {
-        "phone": "9998887773",
+        "phone": "9998887776",
         
         "alternatePhone": "9876543210",
         "otp": "123456",
@@ -122,6 +123,10 @@
         "maxLength": "Abcdefghij Klmnopqrst Uvwxyzabcdefghij Klmnopqrst",
         "whitespaceOnly": "     ",
         "numericOnly": "12345678"
+      },
+      "gender": {
+        "male": "Male",
+        "female": "Female"
       },
       "dob": {
         "validPastDate": "1995-08-15",

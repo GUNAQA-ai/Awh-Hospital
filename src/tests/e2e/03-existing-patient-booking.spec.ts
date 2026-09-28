@@ -275,7 +275,7 @@ test.describe('AWH Hospital - Existing Patient Comprehensive Appointment Suite',
       await bookingPage.selectDate(existing.appointmentDate, existing.month);
       await bookingPage.selectTimeSlot(existing.timeSlot);
       await bookingPage.clickContinue();
-      await bookingPage.selectBasicPackage();
+      await bookingPage.selectCarePackage(existing.carePackage);
       await bookingPage.clickConfirm();
       await bookingPage.verifyAppointmentConfirmationDisplayed();
     });
@@ -352,7 +352,7 @@ test.describe('AWH Hospital - Existing Patient Comprehensive Appointment Suite',
       await bookingPage.selectDate(existing.appointmentDate, existing.month);
       await bookingPage.selectTimeSlot(existing.timeSlot);
       await bookingPage.clickContinue();
-      await bookingPage.selectBasicPackage();
+      await bookingPage.selectCarePackage(existing.carePackage);
       await bookingPage.clickConfirm();
       await bookingPage.verifyAppointmentConfirmationDisplayed();
     });

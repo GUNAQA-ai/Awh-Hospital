@@ -183,13 +183,15 @@ test.describe('AWH Hospital - New Patient Comprehensive Appointment Suite', () =
     });
 
     await test.step('Step 1: Select "Male" from Gender dropdown and verify actual selected value', async () => {
-      const actualGender = await bookingPage.selectGender('Male');
-      expect(actualGender.toLowerCase()).toContain('male');
+      const genderData = data.scenarios.boundaries.gender;
+      const actualGender = await bookingPage.selectGender(genderData.male);
+      expect(actualGender.toLowerCase()).toContain(genderData.male.toLowerCase());
     });
 
     await test.step('Step 2: Select "Female" from Gender dropdown and verify actual selected value', async () => {
-      const actualGender = await bookingPage.selectGender('Female');
-      expect(actualGender.toLowerCase()).toContain('female');
+      const genderData = data.scenarios.boundaries.gender;
+      const actualGender = await bookingPage.selectGender(genderData.female);
+      expect(actualGender.toLowerCase()).toContain(genderData.female.toLowerCase());
     });
   });
 
@@ -272,7 +274,7 @@ test.describe('AWH Hospital - New Patient Comprehensive Appointment Suite', () =
       expect(actualError).toContain(data.scenarios.expectedMessages.phoneExact10Digits);
     });
 
-    await test.step('Step 2: Enter valid 10-digit mobile number (9390406658)', async () => {
+    await test.step('Step 2: Enter valid 10-digit mobile number', async () => {
       await bookingPage.clearMobileNumber();
       await bookingPage.enterMobileNumber(phoneData.valid10Digits);
     });
@@ -330,12 +332,13 @@ test.describe('AWH Hospital - New Patient Comprehensive Appointment Suite', () =
     });
   });
 
-  test('TC-NP-014 [Validation Audit] Verify entering registered mobile number (9390406658) triggers "already linked to 2 patients" validation', async ({ bookingPage, config }) => {
+  test('TC-NP-014 [Validation Audit] Verify entering registered mobile number triggers "already linked to patients" validation', async ({ bookingPage, config }) => {
     allure.story('Duplicate Mobile Validation');
     allure.severity('critical');
     allure.description('Verify system detects registered mobile numbers on the New Patient form, displays warning message, disables OTP, and provides option to continue as existing patient.');
 
     const patient = data.scenarios.newPatient.primary;
+    const registeredPhone = data.scenarios.existingPatient.registeredPhone;
 
     await test.step('Precondition: Navigate to intake form', async () => {
       await bookingPage.navigateToBooking(config.baseURL || data.application.url);
@@ -343,8 +346,8 @@ test.describe('AWH Hospital - New Patient Comprehensive Appointment Suite', () =
       await bookingPage.clickContinue();
     });
 
-    await test.step(`Step 1: Enter registered mobile number (${patient.personalDetails.phone})`, async () => {
-      await bookingPage.enterMobileNumber(data.scenarios.existingPatient.registeredPhone || '9390406658');
+    await test.step(`Step 1: Enter registered mobile number (${registeredPhone})`, async () => {
+      await bookingPage.enterMobileNumber(registeredPhone);
     });
 
     await test.step('Step 2: Capture validation message, assert OTP is disabled, and print audit report to console', async () => {
@@ -358,7 +361,7 @@ test.describe('AWH Hospital - New Patient Comprehensive Appointment Suite', () =
       console.log('\n======================================================================');
       console.log('📋 [USER INPUT VALIDATION AUDIT]');
       console.log(`Target Field    : Mobile Number`);
-      console.log(`Input Entered   : "${patient.personalDetails.phone}"`);
+      console.log(`Input Entered   : "${registeredPhone}"`);
       console.log(`Validation Msg  : "${warningText}"`);
       console.log(`Status Reason   : Mobile number is already linked to 2 patients in the database.`);
       console.log(`System Behavior : OTP field disabled; registration guarded against duplicate.`);
@@ -579,7 +582,7 @@ test.describe('AWH Hospital - New Patient Comprehensive Appointment Suite', () =
     const patient = data.scenarios.newPatient.primary;
     const rescheduleData = data.scenarios.reschedule;
 
-    await test.step('Precondition: Complete appointment booking for New Patient Gunasekher', async () => {
+    await test.step('Precondition: Complete appointment booking for New Patient', async () => {
       await bookingPage.navigateToBooking(config.baseURL || data.application.url);
       await bookingPage.selectNewPatient();
       await bookingPage.clickContinue();
@@ -595,7 +598,7 @@ test.describe('AWH Hospital - New Patient Comprehensive Appointment Suite', () =
       await bookingPage.selectDate(patient.appointmentDate, patient.month);
       await bookingPage.selectTimeSlot(patient.timeSlot);
       await bookingPage.clickContinue();
-      await bookingPage.selectBasicPackage();
+      await bookingPage.selectCarePackage(patient.carePackage);
       await bookingPage.clickConfirm();
       await bookingPage.verifyAppointmentConfirmationDisplayed();
     });
@@ -651,7 +654,7 @@ test.describe('AWH Hospital - New Patient Comprehensive Appointment Suite', () =
       await bookingPage.selectDate(patient.appointmentDate, patient.month);
       await bookingPage.selectTimeSlot(patient.timeSlot);
       await bookingPage.clickContinue();
-      await bookingPage.selectBasicPackage();
+      await bookingPage.selectCarePackage(patient.carePackage);
       await bookingPage.clickConfirm();
       await bookingPage.verifyAppointmentConfirmationDisplayed();
     });
