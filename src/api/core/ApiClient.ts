@@ -10,7 +10,11 @@ export interface ApiRequestOptions {
   retries?: number;
 }
 
+// Utility: Core API Client Wrapper.
+// Wraps Playwright's native APIRequestContext to provide a unified HTTP client 
+// featuring automated retries, exponential backoff handling, and detailed Winston logging.
 export class ApiClient {
+  // Injected via Playwright's `request` fixture from testFixtures or directly from tests.
   constructor(private request: APIRequestContext) {}
 
   /**

@@ -1,0 +1,175 @@
+{
+  "application": {
+    "url": "https://awh-website-booking-form.vercel.app/",
+    "title": "Book a visit",
+    "languages": {
+      "english": "English",
+      "hindi": "Hindi",
+      "telugu": "Telugu"
+    }
+  },
+  "scenarios": {
+    "newPatient": {
+      "primary": {
+        "patientType": "new",
+        "doctor": "Dr. Ananya Sharma",
+        "month": "September",
+        "appointmentDate": "29",
+        "timeSlot": "first",
+        "carePackage": "Basic",
+        "personalDetails": {
+          "fullName": "Gunasekher",
+          "dob": "1995-08-15",
+          "gender": "Male",
+          "pincode": "520001",
+          "state": "Andhra Pradesh",
+          "city": "Vijayawada",
+          "phone": "9998887773",
+          "otp": "123456"
+        }
+      },
+      "secondary": {
+        "patientType": "new",
+        "doctor": "Dr. Rajesh Varma",
+        "month": "September",
+        "appointmentDate": "30",
+        "timeSlot": "first",
+        "carePackage": "Advanced",
+        "personalDetails": {
+          "fullName": "Priya Sharma",
+          "dob": "1990-05-20",
+          "gender": "Female",
+          "pincode": "500001",
+          "state": "Telangana",
+          "city": "Hyderabad",
+          "phone": "",
+          "otp": "123456"
+        }
+      }
+    },
+    "reschedule": {
+      "newDoctor": "Dr. Rajesh Varma",
+      "newMonth": "September",
+      "newAppointmentDate": "30",
+      "newTimeSlot": "first",
+      "newCarePackage": "Advanced"
+    },
+    "existingPatient": {
+      "registered": {
+        "phone": "9998887773",
+        
+        "alternatePhone": "9876543210",
+        "otp": "123456",
+        "patientSelection": 0,
+        "secondPatientSelection": 1,
+        "doctor": "Dr. Ananya Sharma",
+        "month": "September",
+        "appointmentDate": "29",
+        "timeSlot": "12:30 PM",
+        "carePackage": "Basic"
+      },
+      "unregistered": {
+        "phone": "9999999999",
+        "otp": "123456"
+      },
+      "invalidOtp": {
+        "phone": "9848012345",
+        "otp": "000000"
+      },
+      "reschedule": {
+        "newDoctor": "Dr. Rajesh Varma",
+        "newMonth": "September",
+        "newAppointmentDate": "29",
+        "newTimeSlot": "first",
+        "newCarePackage": "Advanced"
+      },
+      "boundaries": {
+        "blank": "",
+        "shortPhone": "987654321",
+        "longPhone": "98765432109",
+        "specialCharPhone": "ABC@12345#"
+      }
+    },
+    "carePackages": {
+      "basic": {
+        "name": "Basic",
+        "price": "INR 500",
+        "desc": "Basic care package"
+      },
+      "advanced": {
+        "name": "Advanced",
+        "price": "INR 1,500",
+        "desc": "Advanced care package"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "INR 3,000",
+        "desc": "Premium care package"
+      },
+      "silver": "Basic",
+      "gold": "Advanced",
+      "platinum": "Premium"
+    },
+    "doctors": [
+      "Dr. Ananya Sharma",
+      "Dr. Rajesh Varma",
+      "Dr. Sneha Patil",
+      "Dr. Vikram Malhotra"
+    ],
+    "boundaries": {
+      "name": {
+        "minLength": "A",
+        "maxLength": "Abcdefghij Klmnopqrst Uvwxyzabcdefghij Klmnopqrst",
+        "whitespaceOnly": "     ",
+        "numericOnly": "12345678"
+      },
+      "dob": {
+        "validPastDate": "1995-08-15",
+        "futureDate": "2099-01-01",
+        "currentYearDate": "2026-01-01"
+      },
+      "phone": {
+        "valid10Digits": "9390406658",
+        "shortLength": "98765",
+        "longLength": "9876543210999",
+        "alphabetic": "ABCDEFGHIJ",
+        "specialChars": "!@#$%^&*()",
+        "invalidStartingDigit": "1234567890"
+      },
+      "city": {
+        "validCity": "Vijayawada",
+        "alternateCity": "Hyderabad",
+        "numericCity": "12345",
+        "specialCharCity": "!@#$%^&*",
+        "unknownCity": "UnknownNonExistentCity",
+        "longCity": "Averylongcitynamethatdoesnotexistinanydatabaserecord"
+      },
+      "otp": {
+        "valid": "123456",
+        "short": "123",
+        "invalid": "000000"
+      },
+      "pincode": {
+        "valid6Digits": "520001",
+        "shortLength": "5200",
+        "invalidChars": "ABCDEF"
+      }
+    },
+    "expectedMessages": {
+      "patientTypeRequired": "Please choose new or existing patient.",
+      "phoneRequired": "Please enter a valid mobile number (10 digits).",
+      "phoneExact10Digits": "Mobile number must be exactly 10 digits.",
+      "otpRequired": "Please enter the OTP sent to your mobile.",
+      "otpLength": "OTP must be exactly 6 digits.",
+      "fullNameRequired": "Please enter your full name.",
+      "stateRequired": "Please select your state.",
+      "cityRequired": "Please enter your city.",
+      "dobRequired": "Please enter a valid date of birth.",
+      "genderRequired": "Please select your gender.",
+      "pincodeRequired": "Please enter a valid 6-digit pincode.",
+      "packageRequired": "Please choose a package to continue.",
+      "slotRequired": "Please pick an available time slot.",
+      "sendOtpFirst": "Please send OTP to your mobile first."
+    }
+  }
+}

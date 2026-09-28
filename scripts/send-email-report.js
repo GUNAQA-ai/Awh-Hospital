@@ -18,33 +18,116 @@ if (missingVars.length > 0) {
 }
 
 async function sendEmailReport() {
-  const summaryPath = path.join(__dirname, '..', 'allure-report', 'widgets', 'summary.json');
+  // Parse Playwright JSON report for Real stats and Jira Defect details
+  let stats = { total: 0, passed: 0, failed: 0, skipped: 0 };
+  let jiraBugTicketsHTML = '';
   
-  // Read Allure summary to get test statistics
-  let summary = { statistic: { total: 0, passed: 0, failed: 0, skipped: 0, broken: 0 } };
   try {
-    if (fs.existsSync(summaryPath)) {
-      summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+    const playwrightJsonPath = path.join(__dirname, '..', 'test-results.json');
+    if (fs.existsSync(playwrightJsonPath)) {
+      const pwData = JSON.parse(fs.readFileSync(playwrightJsonPath, 'utf8'));
+      const failedTests = [];
+      
+      function extractStatsAndFailures(suite) {
+        if (suite.specs) {
+          suite.specs.forEach(spec => {
+            if (spec.tests) {
+              spec.tests.forEach(test => {
+                stats.total++;
+                if (test.status === 'expected' || test.status === 'flaky') {
+                  stats.passed++;
+                } else if (test.status === 'skipped') {
+                  stats.skipped++;
+                } else {
+                  stats.failed++;
+                  // Extract failure details
+                  const lastResult = test.results[test.results.length - 1];
+                  if (lastResult && lastResult.error) {
+                    failedTests.push({
+                      title: spec.title,
+                      errorMsg: lastResult.error.message || ''
+                    });
+                  }
+                }
+              });
+            }
+          });
+        }
+        if (suite.suites) {
+          suite.suites.forEach(extractStatsAndFailures);
+        }
+      }
+      
+      if (pwData.suites) pwData.suites.forEach(extractStatsAndFailures);
+      
+      if (failedTests.length > 0) {
+        jiraBugTicketsHTML += `<br><h2>🐞 Jira Defect Reports</h2>`;
+        failedTests.forEach(test => {
+          let expectedResult = 'N/A';
+          let actualResult = 'N/A';
+          let validationMessage = 'None';
+          const errorMsg = test.errorMsg;
+          
+          const expectedMatch = errorMsg.match(/Expected.*?:(.*)/i);
+          if (expectedMatch) expectedResult = expectedMatch[1].trim();
+
+          const actualMatch = errorMsg.match(/Received.*?:(.*)/i);
+          if (actualMatch) actualResult = actualMatch[1].trim();
+
+          if (errorMsg.includes('Validation Failure')) {
+            const valMatch = errorMsg.match(/Validation Failure:\s*(.*)/i);
+            if (valMatch) validationMessage = valMatch[1].trim();
+          } else if (errorMsg.includes('duplicate_contact')) {
+            const valMatch = errorMsg.match(/(Error Code:.*?)$/m);
+            if (valMatch) validationMessage = valMatch[1].trim();
+          }
+          
+          let issueType = 'Bug';
+          let summary = 'Application / Assertion Failure';
+          if (errorMsg.includes('LocatorError') || errorMsg.includes('strict mode violation') || errorMsg.includes('was not found in')) {
+             issueType = 'Script Maintenance';
+             summary = 'Script / Locator Configuration Error';
+          } else if (errorMsg.includes('Timeout')) {
+             issueType = 'Script Maintenance';
+             summary = 'Script / Element Locator Timeout';
+          } else if (errorMsg.includes('Validation Failure')) {
+             summary = 'Form Validation Failure Detected';
+          }
+          
+          jiraBugTicketsHTML += `
+            <div style="border: 1px solid #dc3545; border-radius: 5px; margin-bottom: 15px; padding: 15px; background-color: #fff0f1; font-family: Arial, sans-serif;">
+              <h3 style="margin-top: 0; color: #dc3545;">[Issue Type: ${issueType}] ${test.title}</h3>
+              <p style="color: #333;"><strong>Summary:</strong> ${summary}</p>
+              <table style="width: 100%; border-collapse: collapse; margin-top: 10px; color: #333;">
+                ${expectedResult !== 'N/A' ? `<tr><td style="padding: 8px; border-bottom: 1px solid #ffccd1; width: 30%;"><strong>Expected Result:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ffccd1;">${expectedResult}</td></tr>` : ''}
+                ${actualResult !== 'N/A' ? `<tr><td style="padding: 8px; border-bottom: 1px solid #ffccd1;"><strong>Actual Result:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ffccd1;">${actualResult}</td></tr>` : ''}
+                ${validationMessage !== 'None' ? `<tr><td style="padding: 8px; border-bottom: 1px solid #ffccd1;"><strong>Captured Validation Message:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ffccd1;">${validationMessage}</td></tr>` : ''}
+                <tr><td style="padding: 8px;"><strong>Raw Error:</strong></td><td style="padding: 8px;"><pre style="font-size: 11px; color: #666; margin: 0; max-height: 100px; overflow: hidden;">${errorMsg.split('\n')[0]}</pre></td></tr>
+              </table>
+            </div>
+          `;
+        });
+      }
     } else {
-      console.warn('⚠️ Allure summary.json not found. Proceeding with zeroed statistics.');
+       console.error('❌ test-results.json not found. Cannot generate email metrics.');
+       process.exit(1);
     }
-  } catch (error) {
-    console.error('❌ Failed to read Allure summary:', error.message);
+  } catch (err) {
+    console.error('⚠️ Failed to parse test-results.json for JIRA report generation:', err);
   }
 
-  const stats = summary.statistic;
   const passedStyle = 'color: #28a745; font-weight: bold;';
   const failedStyle = 'color: #dc3545; font-weight: bold;';
   const totalStyle = 'font-weight: bold;';
 
   // Determine overall status
-  const isSuccess = (stats.failed === 0 && stats.broken === 0);
-  const statusIcon = isSuccess ? '✅' : '❌';
-  const statusText = isSuccess ? 'PASSED' : 'FAILED';
+  const isSuccess = (stats.failed === 0);
+  const statusIcon = '';
+  const statusText = 'Execution Summary';
 
   // Create HTML Email Body
   const htmlBody = `
-    <h2>LeadQ Automation Execution Report ${statusIcon}</h2>
+    <h2>AWH Hospital Automation Execution Report</h2>
     <p>The automated test suite execution has completed. Below is the summary of the results.</p>
     
     <table border="1" cellpadding="10" cellspacing="0" style="border-collapse: collapse; text-align: left; font-family: Arial, sans-serif;">
@@ -61,8 +144,8 @@ async function sendEmailReport() {
         <td style="${passedStyle}">${stats.passed}</td>
       </tr>
       <tr>
-        <td><strong>Failed / Broken</strong></td>
-        <td style="${failedStyle}">${stats.failed + stats.broken}</td>
+        <td><strong>Failed</strong></td>
+        <td style="${failedStyle}">${stats.failed}</td>
       </tr>
       <tr>
         <td><strong>Skipped</strong></td>
@@ -77,7 +160,10 @@ async function sendEmailReport() {
       <li><strong>Timestamp:</strong> ${new Date().toUTCString()}</li>
     </ul>
 
-    <p style="font-size: 12px; color: #6c757d;">This is an automated email generated by the LeadQ Playwright Automation Framework.</p>
+    <!-- DYNAMIC JIRA DEFECT REPORTS INJECTED HERE -->
+    ${jiraBugTicketsHTML}
+
+    <p style="font-size: 12px; color: #6c757d;">This is an automated email generated by the AWH Hospital Playwright Automation Framework.</p>
   `;
 
   // Setup Nodemailer Transporter
@@ -92,9 +178,9 @@ async function sendEmailReport() {
   });
 
   const mailOptions = {
-    from: `"LeadQ Automation" <${process.env.SMTP_USER}>`,
+    from: `"AWH Hospital Automation" <${process.env.SMTP_USER}>`,
     to: process.env.EMAIL_TO,
-    subject: `${statusIcon} Automation Report: ${statusText} [${stats.passed}/${stats.total} Passed]`,
+    subject: `Automation Report: [${stats.passed}/${stats.total} Passed]`,
     html: htmlBody
   };
 

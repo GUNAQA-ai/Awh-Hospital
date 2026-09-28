@@ -1,6 +1,6 @@
-# LeadQ Playwright Automation Framework
+# AWH Hospital Playwright Automation Framework
 
-Welcome to the **LeadQ Automation Framework**. This is a senior-level, enterprise-grade Playwright framework built with TypeScript. It features Page Object Models (POM), dynamic API testing, Allure trend reporting, and adaptive CI/CD email notifications.
+Welcome to the **AWH Hospital Automation Framework**. This is a senior-level, enterprise-grade Playwright framework built with TypeScript. It features Page Object Models (POM), dynamic API testing, Allure trend reporting, and adaptive CI/CD email notifications.
 
 This document is your **Pin-to-Pin Master Guide**. It explains exactly what the framework is, why it is built this way, where to find things, how to configure credentials, and how to run it anywhere.
 
@@ -11,13 +11,13 @@ This document is your **Pin-to-Pin Master Guide**. It explains exactly what the 
 This framework is designed for scale, stability, and crystal-clear reporting.
 
 ### Where things are located:
-* **`src/tests/`**: Contains all your `.spec.ts` files (e.g., `e2e/login.spec.ts`).
-* **`src/pages/`**: Contains your Page Object Models (e.g., `LoginPage.ts`).
+* **`src/tests/`**: Contains all your `.spec.ts` files (e.g., `e2e/02-new-patient-booking.spec.ts`).
+* **`src/pages/`**: Contains your Page Object Models (e.g., `AwhBookingPage.ts`).
 * **`src/utils/`**: Contains your custom assertions, validations, and the `ConsoleStepReporter.ts`.
 * **`playwright.config.ts`**: The global configuration (timeouts, browsers, reporters).
 
 ### Why it is built this way (The Master Flow):
-1. **Spec Files (The "What"):** Spec files only contain test data inputs (e.g., `await loginPage.enterUsername('user@leadq.ai')`). They **do not** contain locators or complex logic.
+1. **Spec Files (The "What"):** Spec files only contain test data inputs (e.g., `await bookingPage.selectPatientType(patient.patientType)`). They **do not** contain locators or complex logic.
 2. **Page Objects (The "Where"):** Page objects declare exactly where elements are located on the screen (`private usernameInput: Locator`) and hold human-readable log strings (`"Entering email address"`).
 3. **BasePage (The "How"):** All page objects extend `BasePage.ts`. It handles the low-level Playwright interactions (clicks, fills, waits), logs the human strings to the terminal, and catches errors to throw custom exceptions.
 4. **ConsoleStepReporter (The "Proof"):** Formats the console logs and generates a **Client Proof Report** when a test fails, clearly distinguishing between a [SCRIPT TIMEOUT] vs a [CONFIRMED APPLICATION BUG].
@@ -44,7 +44,7 @@ Your framework dynamically adapts to where it is running, but for Local Executio
 * **Why:** You need this token to push code to GitHub securely from the command line.
 * **How to get it:**
    1. Go to https://github.com/settings/tokens
-   2. Click **Generate new token (classic)**. Name it `leadq-push`.
+   2. Click **Generate new token (classic)**. Name it `automation-push`.
    3. **CRITICAL:** Check the **`repo`** checkbox (Full control of private repositories).
    4. Click Generate and copy the token (`ghp_...`).
 * **Where:** Paste it into `.env` under `GITHUB_PAT`.
@@ -108,7 +108,7 @@ The framework contains a production-ready `Jenkinsfile`.
 4. Go to Manage Jenkins -> Tools -> Scroll to **Allure Commandline** -> Click Add Allure Commandline -> Name it `allure` -> Check "Install automatically" -> Click Save.
 
 ### How to run it:
-1. Click **New Item** -> Name it `LeadQ Pipeline` -> Select **Pipeline** -> Click OK.
+1. Click **New Item** -> Name it `Hospital Booking Pipeline` -> Select **Pipeline** -> Click OK.
 2. Under Pipeline Definition, select **Pipeline script from SCM**.
 3. SCM: **Git** -> URL: `https://github.com/Guna-coder2000/Leadqautomation.git`.
 4. Branch Specifier: `*/main` -> Script Path: `Jenkinsfile` -> Save.

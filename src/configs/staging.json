@@ -1,4 +1,6 @@
 {
   "name": "staging",
-  "baseURL": "https://app.leadq.ai/"
+  "baseURL": "https://staging.example.com",
+  "apiBaseURL": "http://13.205.179.0:3000",
+  "orchBaseURL": "http://13.205.179.0:3001"
 }

@@ -1,5 +1,6 @@
 {
   "name": "uat",
-  "baseURL": "https://app.leadq.ai/"
+  "baseURL": "https://awh-website-booking-form.vercel.app/",
+  "apiBaseURL": "http://13.205.179.0:3000",
+  "orchBaseURL": "http://13.205.179.0:3001"
 }
-

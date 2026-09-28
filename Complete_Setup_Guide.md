@@ -1,6 +1,6 @@
 # 🚀 The Ultimate Playwright Automation Guide: Architecture, Setup & Execution
 
-Welcome to the **LeadQ Automation Master Guide**. 
+Welcome to the **AWH Hospital Automation Master Guide**. 
 
 This document is built for absolute beginners and senior architects alike. It will first explain exactly **what** technologies are powering this framework and **why** they were chosen. Then, it will walk you through a pin-to-pin, from-scratch setup guide to get everything running on a brand new computer.
 
@@ -71,7 +71,7 @@ To use the cloud pipelines and send HTML email reports, you need specific securi
 2. Log in, click your profile picture in the top right corner, and select **Settings**.
 3. Scroll down the left menu and click **Developer settings** -> **Personal access tokens** -> **Tokens (classic)**.
 4. Click **Generate new token (classic)**.
-5. Name the token `LeadQ Automation`.
+5. Name the token `Hospital Automation`.
 6. **CRITICAL:** Check the box that says **`repo`** (This gives the token permission to read and write code).
 7. Click Generate, and **copy the long password** (it starts with `ghp_...`). Save this somewhere safe!
 

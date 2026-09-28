@@ -2,12 +2,18 @@ import fs from 'fs';
 import path from 'path';
 import { getEnvConfig } from './env';
 
+let isAllureSetupDone = false;
+
 /**
- * Generates Allure environment.properties and categories.json dynamically.
- * All values are derived from runtime environment — zero hardcoded application-specific data.
- * Works for any application, any browser, any environment.
+ * Utility: Allure Reporting Global Configuration.
+ * Generates Allure environment.properties and categories.json dynamically at runtime.
+ * All values are derived from runtime environment variables (zero hardcoded application-specific data).
+ * This ensures the final HTML report displays accurate environment details (UAT vs Prod, Base URL).
  */
 export function setupAllureEnvironment() {
+  // Prevent duplicate execution during multi-worker parallel execution or fixture tear-down.
+  if (isAllureSetupDone) return;
+  
   const resultsDir = path.resolve(process.cwd(), 'allure-results');
   if (!fs.existsSync(resultsDir)) {
     fs.mkdirSync(resultsDir, { recursive: true });
@@ -49,4 +55,6 @@ export function setupAllureEnvironment() {
     }
   ];
   fs.writeFileSync(path.join(resultsDir, 'categories.json'), JSON.stringify(categoriesContent, null, 2));
+
+  isAllureSetupDone = true;
 }

@@ -1,5 +1,8 @@
 /**
- * Base custom error class for the Automation Framework.
+ * Utility: Centralized Exception Handling.
+ * Defines the custom error hierarchy for the framework.
+ * By subclassing Error, we can categorize failures (e.g., Timeout, Locator, Network)
+ * allowing reporters like Allure to automatically group and categorize test failures.
  */
 export class FrameworkError extends Error {
   public readonly context?: string;

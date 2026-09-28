@@ -1,4 +1,6 @@
 {
   "name": "dev",
-  "baseURL": "https://app.leadq.ai/"
+  "baseURL": "http://localhost:3000",
+  "apiBaseURL": "http://13.205.179.0:3000",
+  "orchBaseURL": "http://13.205.179.0:3001"
 }

@@ -2,10 +2,14 @@ import { expect, Locator, Page } from '@playwright/test';
 import { CustomAssertionError, mapPlaywrightError } from './exceptions';
 
 /**
- * Custom assertions that leverage Playwright's auto-retrying expect expectations.
- * If they fail, they throw CustomAssertionError with meaningful messages.
+ * Utility: Custom Framework Assertions.
+ * Wraps Playwright's native `expect` with built-in try-catch blocks.
+ * WHY: When a standard Playwright assertion fails, it throws a generic error.
+ * These custom wrappers catch those errors and throw our `CustomAssertionError`,
+ * allowing us to format, intercept, or handle assertion failures globally if needed.
  */
 
+// Confirms the target element is visibly rendered in the DOM.
 export async function assertElementVisible(locator: Locator, message?: string): Promise<void> {
   try {
     await expect(locator).toBeVisible();

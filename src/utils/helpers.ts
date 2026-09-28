@@ -1,6 +1,12 @@
 import { APIRequestContext } from '@playwright/test';
 
 /**
+ * Utility: Application-Agnostic Helpers.
+ * Contains generic data generation and formatting functions.
+ * WHY: Abstracting logic like random string/email generation keeps Page Objects
+ * and Tests clean, and prevents duplication of generic algorithms.
+ */
+/**
  * Format a Date object to YYYY-MM-DD string.
  */
 export function formatDate(date: Date): string {
@@ -34,13 +40,6 @@ export function generateRandomPhoneNumber(): string {
     const prefix = Math.floor(200 + Math.random() * 700);
     const lineNumber = Math.floor(1000 + Math.random() * 9000);
     return `${areaCode}${prefix}${lineNumber}`;
-}
-
-/**
- * Generate a random contact name with a prefix.
- */
-export function generateRandomContactName(prefix: string = 'Test Contact'): string {
-    return `${prefix} ${randomString(5)}`;
 }
 
 /**
