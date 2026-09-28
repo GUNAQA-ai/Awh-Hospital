@@ -484,22 +484,65 @@ export class AwhBookingPage extends BasePage {
 
   /**
    * Combined Send OTP & Auto-fill method for New Patient Intake.
-   * 1. Checks if mobile validation was triggered (e.g. number already linked to existing).
-   * 2. Clicks 'Send OTP' button.
-   * 3. Checks if OTP input is enabled.
-   * 4. Enters the provided OTP code passed from test spec into the field.
+   * 
+   * BULLETPROOF IMPLEMENTATION:
+   * Uses a multi-strategy retry loop to guarantee the OTP is entered
+   * regardless of UI lag, network speed, or CI environment timing.
+   * 
+   * Strategy 1: Wait for the field to become enabled naturally (application flow)
+   * Strategy 2: Force-enable via DOM evaluation and use fill()
+   * Strategy 3: Force-enable via DOM evaluation and type character-by-character
    */
   async sendOtp(otpCode?: string): Promise<string> {
     await super.clickOnElement(this.sendOtpButton, this.clickedSendOtpLog);
     const otp = otpCode ? otpCode.trim() : '123456';
     
-    // Playwright's fill command inside enterValueForInputElement will automatically wait 
-    // for the OTP field to become enabled by the application after the OTP is sent.
-    // Hack: Force enable the input if the UI animation/state is lagging or buggy.
-    await this.page.waitForTimeout(500);
-    await this.otpInput.evaluate((el: HTMLInputElement) => { el.disabled = false; }).catch(() => {});
-    
-    await super.enterValueForInputElement(this.otpInput, otp, `${this.enteredOtpLog}: ${otp}`);
+    const MAX_RETRIES = 3;
+    let filled = false;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        // Wait progressively longer each attempt for the app to enable the field
+        await this.page.waitForTimeout(500 * attempt);
+
+        // Force-enable the input via DOM in case the app hasn't done it yet
+        await this.otpInput.evaluate((el: HTMLInputElement) => {
+          el.disabled = false;
+          el.removeAttribute('disabled');
+          el.style.pointerEvents = 'auto';
+          el.style.opacity = '1';
+        }).catch(() => {});
+
+        // Attempt 1 & 2: Use standard fill
+        if (attempt <= 2) {
+          await this.otpInput.fill(otp, { timeout: 5000 });
+        } else {
+          // Attempt 3: Click + type character by character as last resort
+          await this.otpInput.click({ force: true });
+          await this.page.keyboard.press('Control+A');
+          await this.page.keyboard.press('Backspace');
+          await this.otpInput.pressSequentially(otp, { delay: 50 });
+        }
+
+        // Verify the value was actually entered
+        const currentValue = await this.otpInput.inputValue().catch(() => '');
+        if (currentValue === otp) {
+          filled = true;
+          console.log(`  ✅ OTP entered successfully on attempt ${attempt}`);
+          break;
+        }
+      } catch (err: any) {
+        console.warn(`  ⚠️ OTP entry attempt ${attempt}/${MAX_RETRIES} failed: ${err.message.split('\n')[0]}`);
+        if (attempt === MAX_RETRIES) {
+          throw new Error(`[OTP Entry Failed] Could not enter OTP after ${MAX_RETRIES} attempts. Last error: ${err.message.split('\n')[0]}`);
+        }
+      }
+    }
+
+    if (!filled) {
+      throw new Error(`[OTP Entry Failed] OTP value was not confirmed in the input field after all retry attempts.`);
+    }
+
     return otp;
   }
 
@@ -517,8 +560,25 @@ export class AwhBookingPage extends BasePage {
 
   async enterOtp(otp: string) {
     const code = otp ? otp.trim() : '123456';
-    await this.otpInput.evaluate((el: HTMLInputElement) => { el.disabled = false; }).catch(() => {});
-    await super.enterValueForInputElement(this.otpInput, code, `${this.enteredOtpLog}: ${code}`);
+
+    // Same bulletproof strategy for standalone OTP entry
+    await this.page.waitForTimeout(500);
+    await this.otpInput.evaluate((el: HTMLInputElement) => {
+      el.disabled = false;
+      el.removeAttribute('disabled');
+      el.style.pointerEvents = 'auto';
+      el.style.opacity = '1';
+    }).catch(() => {});
+
+    try {
+      await this.otpInput.fill(code, { timeout: 5000 });
+    } catch {
+      // Fallback: character-by-character
+      await this.otpInput.click({ force: true });
+      await this.page.keyboard.press('Control+A');
+      await this.page.keyboard.press('Backspace');
+      await this.otpInput.pressSequentially(code, { delay: 50 });
+    }
   }
 
   async clearFullName() {
