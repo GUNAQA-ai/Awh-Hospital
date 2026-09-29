@@ -1,3 +1,38 @@
+/**
+ * @file playwright.config.ts
+ * @description
+ * Global configuration specification for the Playwright Test Runner.
+ * Configures test suite directories, timeouts, worker concurrency, assertion retry thresholds,
+ * reporter plugins (List, HTML, JSON, Allure, and custom ConsoleStepReporter), environment loading,
+ * browser contexts, and CI/CD adaptations.
+ *
+ * Responsibilities:
+ * - Load environment variables safely from `.env` in local development without throwing in CI.
+ * - Retrieve validated environment parameters (baseURL, timeouts, API endpoints) via {@link getEnvConfig}.
+ * - Enforce sequential test execution (`workers: 1`, `fullyParallel: false`) to avoid state collisions.
+ * - Register comprehensive reporting tools (Allure, HTML report, JSON artifact, custom terminal step reporter).
+ * - Adapt browser launch channel dynamically (installed Google Chrome locally vs bundled Chromium in CI).
+ *
+ * Key Configuration Objects:
+ * - {@link defineConfig} - Root Playwright configuration export.
+ *
+ * Dependencies:
+ * - `@playwright/test`: Core Playwright runner and configuration types.
+ * - `./src/utils/env`: Environment configuration loader and schema validator.
+ * - `dotenv`: Environment file parser.
+ * - `fs`: Node.js filesystem module.
+ *
+ * Assumptions:
+ * - In local runs, a `.env` file may provide configuration overrides.
+ * - In CI runners (GitHub Actions, Jenkins, GitLab), environment variables are injected via secure pipeline secrets.
+ *
+ * Side Effects:
+ * - Directs Playwright browser spawning, viewport sizing, network interception, and artifact generation.
+ *
+ * Usage Considerations:
+ * - Concurrency is set to 1 worker to ensure deterministic booking and patient account states.
+ */
+
 import { defineConfig, devices } from '@playwright/test';
 import { getEnvConfig } from './src/utils/env';
 import dotenv from 'dotenv';
@@ -9,39 +44,41 @@ if (fs.existsSync('.env')) {
   dotenv.config();
 }
 
-// Fetch validated environment configuration
+/** Validated environment configuration parsed from `config/` JSON files and environment variables */
 const config = getEnvConfig();
 
-// Detect CI environment - CI servers use Chromium, local uses installed Chrome
+/**
+ * Boolean flag detecting whether tests are executing inside a continuous integration runner.
+ * Checks for standard CI environment markers (CI, GITHUB_ACTIONS, JENKINS_URL, GITLAB_CI).
+ */
 const isCI = !!(process.env.CI || process.env.GITHUB_ACTIONS || process.env.JENKINS_URL || process.env.GITLAB_CI);
 
-// Central configuration file for the Playwright automation framework.
-// Defines global execution rules, reporting integrations, environment loading, and browser settings.
+/**
+ * Root Playwright test runner configuration definition.
+ */
 export default defineConfig({
-  // testDir: Instructs Playwright where to look for test specification files.
-  // We point this to './src/tests' so that page objects and utils are excluded from test discovery.
+  /** Directory containing all test specifications (excludes page objects and utilities) */
   testDir: './src/tests',
   
-  // timeout: Maximum execution time permitted for a single test.
-  // 90 seconds accommodates complex E2E flows spanning multiple pages.
+  /** Maximum duration permitted for an individual test execution in milliseconds (90 seconds) */
   timeout: 90000,
   
-  // fullyParallel: Controls whether tests within the same file execute concurrently.
-  // Set to false to ensure predictable sequential execution (vital for data-dependent state).
+  /** Disables parallel execution of tests within the same file to guarantee sequential stability */
   fullyParallel: false, 
   
-  // workers: The maximum number of concurrent test runner processes.
-  // Hardcoded to 1 to force strictly sequential execution of all spec files, 
-  // preventing race conditions on shared test data or environment state.
+  /** 
+   * Maximum concurrent worker processes.
+   * Locked to 1 to prevent race conditions on shared hospital patient data and SMS OTP state.
+   */
   workers: 1, 
   
-  // expect: Global settings for the Playwright assertion engine.
+  /** Configuration for Playwright's `expect` assertion library */
   expect: {
-    // Defines how long Playwright will auto-retry dynamic assertions (like toHaveText or toBeVisible).
+    /** Timeout in milliseconds for dynamic assertions (e.g. toBeVisible, toHaveText) */
     timeout: 10000
   },
   
-  // reporter: Defines the output formats for test execution results.
+  /** Array of active test result reporters */
   reporter: [
     ['list'], // Real-time console output in a readable list format.
     ['html', { open: 'never' }], // Generates standard HTML report but prevents auto-opening in CI/CD.
@@ -50,38 +87,46 @@ export default defineConfig({
     ['./src/utils/ConsoleStepReporter.ts'] // Custom reporter for detailed CLI step logging.
   ],
   
-  // use: Defines global options injected into all Page Object instances.
+  /** Shared options applied across all browser contexts and Page instances */
   use: {
-    // baseURL: Injected dynamically based on the current ENV configuration JSON file.
-    // This allows seamless execution against Dev, UAT, or Prod by changing a single environment variable.
+    /** Base URL resolved dynamically from environment configuration */
     baseURL: config.baseURL,
+
+    /** Default timeout for individual Playwright actions (click, fill) in milliseconds */
     actionTimeout: 15000,
+
+    /** Default timeout for page navigation calls (goto, waitForURL) in milliseconds */
     navigationTimeout: 45000,
     
-    // trace: Automatically captures a comprehensive step-by-step DOM state recording for all tests.
+    /** Records execution traces for test runs to assist in post-mortem debugging */
     trace: 'on',
     
-    // screenshot: Automatically captures an image of the DOM at the end of every test execution.
+    /** Captures full screenshots at the conclusion of every test */
     screenshot: 'on',
     
-    // video: Automatically records a full video of the browser session for all tests.
+    /** Records full video recordings of the browser session */
     video: 'on',
     
-    // CI servers use bundled Chromium; local machine uses installed Google Chrome
+    // In CI environments, rely on bundled Chromium; locally, prefer system Google Chrome
     ...(isCI ? {} : { channel: 'chrome' }),
     
-    // Explicitly define the browser engine for peace of mind
+    /** Explicitly declare chromium browser engine */
     browserName: 'chromium',
     
-    // Run headed (visible) locally, headless in cloud CI
+    /** Run headed (visible) locally, headless in CI runners */
     headless: !!(process.env.GITHUB_ACTIONS || process.env.GITLAB_CI),
+
+    /** Null viewport allows the browser window to maximize naturally */
     viewport: null,
+
+    /** Browser process launch arguments */
     launchOptions: { args: ['--start-maximized'] },
+
+    /** Ignores self-signed SSL certificate errors on internal staging environments */
     ignoreHTTPSErrors: true,
   },
   
-  // projects: Defines distinct execution matrices. 
-  // Currently restricted to Chrome/Chromium to ensure consistent behavior.
+  /** Multi-project execution matrix */
   projects: [
     {
       name: 'chrome',

@@ -1,3 +1,35 @@
+/**
+ * @file 03-existing-patient-booking.spec.ts
+ * @description
+ * End-to-End and functional test suite for Existing Patient Appointment Booking workflows on the AWH Hospital Portal.
+ * Validates the authentication and booking flow for returning patients, including registered mobile phone entry,
+ * OTP verification modal interaction, multi-patient profile matching, time slot reservation, care package selection,
+ * and post-confirmation operations (reschedule and appointment cancellation).
+ *
+ * Test Suite Scope:
+ * - TC-EP-001: [E2E] Full happy path existing patient booking using registered mobile and selected profile card.
+ * - TC-EP-002: Verification modal dismissal via back button and landing screen return.
+ * - TC-EP-003: Registered mobile phone entry and Send OTP button state verification.
+ * - TC-EP-004: Profile selection across multiple patients linked to the same registered mobile number.
+ * - TC-EP-005: Appointment rescheduling workflow for active upcoming bookings.
+ * - TC-EP-006: Appointment cancellation workflow and cancellation modal confirmation.
+ *
+ * Preconditions:
+ * - AWH Hospital booking web application is online and reachable at configured base URL.
+ * - Test phone numbers exist in the hospital database with pre-linked patient profiles.
+ * - HMS backend services (Doctor availability and OTP delivery) are operational.
+ *
+ * Test Data:
+ * - Unified test data loaded dynamically from `sample/booking.json`.
+ * - No hardcoded data in test specifications; adheres strictly to data-driven standards.
+ *
+ * Required Environment:
+ * - QA, Staging, or Production web application environment configured via `ENV` or `.env`.
+ *
+ * Tags:
+ * - `@e2e`, `@existing-patient`, `@booking`, `@reschedule`, `@cancellation`
+ */
+
 import { test, expect } from '../../fixtures/testFixtures';
 import { allure } from 'allure-playwright';
 import fs from 'fs';
@@ -125,28 +157,34 @@ test.describe('AWH Hospital - Existing Patient Comprehensive Appointment Suite',
 
     await test.step('Step 1: Test short mobile number (<10 digits)', async () => {
       await bookingPage.enterExistingPatientPhone(boundary.shortPhone);
-      await bookingPage.clickExistingModalSendOtp();
+      // Real application behavior: Send OTP button is disabled for invalid short mobile numbers
+      const isSendDisabled = await bookingPage.isExistingModalSendOtpDisabled();
+      expect(isSendDisabled).toBeTruthy();
 
       console.log('\n======================================================================');
       console.log('📋 [EXISTING PATIENT MOBILE AUDIT - SHORT NUMBER]');
-      console.log(`Input Entered: "${boundary.shortPhone}" (${boundary.shortPhone.length} digits)`);
-      console.log('Result: Verified submission prevented for incomplete mobile number.');
+      console.log(`Input Entered   : "${boundary.shortPhone}" (${boundary.shortPhone.length} digits)`);
+      console.log(`Send OTP Status : Disabled (${isSendDisabled})`);
+      console.log('Result          : Verified submission prevented for incomplete mobile number.');
       console.log('======================================================================\n');
     });
 
     await test.step('Step 2: Test 10+ digits long mobile number', async () => {
       await bookingPage.enterExistingPatientPhone(boundary.longPhone);
       await bookingPage.clickExistingModalSendOtp();
-      const actualVal = await bookingPage.getExistingModalPhoneInputValue();
 
+      // Real application behavior: OTP input remains disabled because 11-digit phone is rejected
+      const isOtpDisabled = await bookingPage.existingModalOtpInput.isDisabled();
+      expect(isOtpDisabled).toBeTruthy();
+
+      const actualVal = await bookingPage.getExistingModalPhoneInputValue();
       console.log('\n======================================================================');
       console.log('📋 [EXISTING PATIENT MOBILE AUDIT - 10+ DIGITS]');
-      console.log(`Input Entered : "${boundary.longPhone}" (${boundary.longPhone.length} digits)`);
-      console.log(`Field Value   : "${actualVal}" (${actualVal.length} digits)`);
-      console.log('Result: Verified field correctly constrained or blocked.');
+      console.log(`Input Entered   : "${boundary.longPhone}" (${boundary.longPhone.length} digits)`);
+      console.log(`Field Value     : "${actualVal}" (${actualVal.length} digits)`);
+      console.log(`OTP Form Status : Blocked (OTP field disabled: ${isOtpDisabled})`);
+      console.log('Result          : Verified OTP generation is blocked for invalid long mobile numbers.');
       console.log('======================================================================\n');
-
-      expect(actualVal.length <= 10).toBeTruthy();
     });
   });
 

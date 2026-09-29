@@ -21,3 +21,6 @@ Thumbs.db
 
 # Environment variables
 .env
+
+# Test execution artifacts
+test-results.json

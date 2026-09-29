@@ -1,3 +1,43 @@
+/**
+ * @file 02-auth.spec.ts
+ * @description
+ * Automated API test suite verifying authentication endpoints of the HMS Core API service.
+ * Validates CSRF token generation, successful JWT retrieval, credential rejection on invalid input,
+ * bad request schema validation, account enumeration resistance on forgot-password, and AuthHelper caching.
+ *
+ * Test Suite Scope:
+ * - TC-API-AUTH-001: CSRF state token generation (`GET /auth/state`).
+ * - TC-API-AUTH-002: Successful login returning signed JWT `access_token` and user `principal` claims (`POST /auth/login`).
+ * - TC-API-AUTH-003: Negative test verifying invalid credentials return HTTP 401 Unauthorized.
+ * - TC-API-AUTH-004: Validation test verifying missing request body fields return HTTP 400 Bad Request.
+ * - TC-API-AUTH-005: Forgot password anti-enumeration test ensuring HTTP 200 regardless of account existence.
+ * - TC-API-AUTH-006: Integration test verifying AuthHelper token caching and header construction.
+ *
+ * Preconditions:
+ * - HMS Core API service running and accessible on port 3000.
+ * - Test user account exists in the HMS authentication database.
+ *
+ * Test Data:
+ * - Credentials from `process.env.API_EMAIL` and `process.env.API_PASSWORD` with local fallbacks.
+ *
+ * Required Environment:
+ * - Configured via `API_BASE_URL` (default: `http://13.205.179.0:3000`).
+ *
+ * Steps / Flow:
+ * 1. Dispatch request with test credentials or payload.
+ * 2. Assert HTTP status code.
+ * 3. Validate response schema against Zod definitions.
+ *
+ * Cleanup Requirements:
+ * - `AuthHelper.clearAuth()` executes before each test to reset static in-memory token state.
+ *
+ * Dependencies:
+ * - `ApiClient`, `AuthHelper`, `LoginResponseSchema`, `AuthStateResponseSchema`, `HMS`, `ResponseValidator`
+ *
+ * Tags:
+ * - `@api`, `@auth`, `@security`
+ */
+
 import { test, expect } from '../../../fixtures/testFixtures';
 import { AuthHelper } from '../../../api/core/AuthHelper';
 import { LoginResponseSchema, AuthStateResponseSchema } from '../../../api/schemas/AuthSchemas';
@@ -5,10 +45,7 @@ import { HMS } from '../../../api/endpoints/HmsEndpoints';
 import { ResponseValidator } from '../../../api/core/ResponseValidator';
 import { allure } from 'allure-playwright';
 
-/**
- * HMS Core API — Auth Endpoints
- * Swagger: http://13.205.179.0:3000/api/docs#/Auth
- */
+/** Base URL for the HMS Core API service */
 const BASE_URL = process.env.API_BASE_URL || 'http://13.205.179.0:3000';
 
 test.describe('HMS Core API — Auth', () => {
@@ -19,7 +56,9 @@ test.describe('HMS Core API — Auth', () => {
     AuthHelper.clearAuth();
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Auth/AuthController_generateState
+  /**
+   * TC-API-AUTH-001: Verifies CSRF state token generation.
+   */
   test('TC-API-AUTH-001 GET /auth/state — Verify CSRF state token generation', async ({ apiClient }) => {
     allure.story('CSRF State Token');
     allure.severity('critical');
@@ -39,7 +78,9 @@ test.describe('HMS Core API — Auth', () => {
     });
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Auth/AuthController_login
+  /**
+   * TC-API-AUTH-002: Verifies successful login returns access_token and principal.
+   */
   test('TC-API-AUTH-002 POST /auth/login — Verify successful login returns access_token and principal', async ({ apiClient }) => {
     allure.story('Login');
     allure.severity('blocker');
@@ -66,7 +107,9 @@ test.describe('HMS Core API — Auth', () => {
     });
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Auth/AuthController_login
+  /**
+   * TC-API-AUTH-003: Verifies login with invalid credentials returns HTTP 401.
+   */
   test('TC-API-AUTH-003 POST /auth/login — Verify login with invalid credentials returns 401', async ({ apiClient }) => {
     allure.story('Login - Negative');
     allure.severity('critical');
@@ -85,7 +128,9 @@ test.describe('HMS Core API — Auth', () => {
     });
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Auth/AuthController_login
+  /**
+   * TC-API-AUTH-004: Verifies login with missing fields returns 400 Bad Request.
+   */
   test('TC-API-AUTH-004 POST /auth/login — Verify login with missing fields returns 400', async ({ apiClient }) => {
     allure.story('Login - Validation');
     allure.severity('normal');
@@ -102,7 +147,9 @@ test.describe('HMS Core API — Auth', () => {
     });
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Auth/AuthController_forgotPassword
+  /**
+   * TC-API-AUTH-005: Verifies forgot password returns HTTP 200 to prevent user enumeration.
+   */
   test('TC-API-AUTH-005 POST /auth/forgot-password — Verify returns 200 (no email enumeration)', async ({ apiClient }) => {
     allure.story('Forgot Password');
     allure.severity('normal');
@@ -118,7 +165,9 @@ test.describe('HMS Core API — Auth', () => {
     });
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Auth/AuthController_login
+  /**
+   * TC-API-AUTH-006: Verifies AuthHelper caches JWT tokens in memory across requests.
+   */
   test('TC-API-AUTH-006 POST /auth/login — Verify AuthHelper caches token correctly', async ({ apiClient }) => {
     allure.story('AuthHelper Integration');
     allure.severity('critical');
@@ -145,6 +194,3 @@ test.describe('HMS Core API — Auth', () => {
     });
   });
 });
-
-
-

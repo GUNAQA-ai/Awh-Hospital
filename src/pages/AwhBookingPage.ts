@@ -1,3 +1,38 @@
+/**
+ * @file AwhBookingPage.ts
+ * @description
+ * Page Object representing the AWH (AWS Hospital) Web Booking Application portal.
+ * Encapsulates all user interaction flows across the booking lifecycle, including language selection,
+ * new patient intake, existing patient OTP verification, doctor/specialty selection, calendar navigation,
+ * time slot picking, care package selection, appointment confirmation, rescheduling, and cancellation.
+ *
+ * Responsibilities:
+ * - Provide strongly-typed action methods for every step of the appointment booking process.
+ * - Manage and isolate Playwright locators for intake fields, modal dialogs, calendar components, and confirmation cards.
+ * - Handle multi-language switching (English, Hindi, Telugu) with normalized language tags.
+ * - Audit and report application-level validations (e.g. mobile number already linked to existing patients).
+ * - Navigate calendar grids week-by-week or month-by-month to match requested appointment dates.
+ *
+ * Major Classes:
+ * - {@link AwhBookingPage} (also exported as {@link BookingPage}) - Primary Page Object for the AWH Booking application.
+ *
+ * Dependencies:
+ * - `@playwright/test`: Core automation types (Locator, Page, expect, test).
+ * - `./BasePage`: Base page class providing standardized interaction and waiting mechanics.
+ *
+ * Assumptions:
+ * - The web booking application is hosted and accessible at the specified base URL.
+ * - Single-page application (SPA) transitions occur upon button clicks without full-page reloads.
+ *
+ * Side Effects:
+ * - Fills form fields and submits appointment reservations to the HMS/Orchestrator backend.
+ * - Emits detailed step logs to standard output.
+ *
+ * Usage Considerations:
+ * - Use with the custom fixture `test` from `testFixtures.ts` which automatically initializes this page object.
+ * - All date and slot parameters are flexible, supporting ISO strings, day numbers, or keyword identifiers.
+ */
+
 import { Locator, expect, Page, test } from '@playwright/test';
 import { BasePage } from './BasePage';
 
@@ -9,10 +44,13 @@ import { BasePage } from './BasePage';
  * 1. Initial Landing, Language Switcher & Patient Type Selection
  * 2. New Patient Intake Form Fields (Full name, DOB, Gender, State, City, Phone, OTP)
  * 3. Date & Time Selection (Doctor filter, Week navigation, Day, Time slots)
- * 4. Care Package Selection (Silver, Gold, Platinum)
+ * 4. Care Package Selection (Silver, Gold, Platinum / Basic, Advanced, Premium)
  * 5. Navigation & Appointment Confirmation (Pill, Upcoming, Reschedule, Cancel)
  * 6. Existing Patient Verification Modal & Matched Profiles List
  * 7. Screen & Validation Error Message Verifications
+ *
+ * @class AwhBookingPage
+ * @extends {BasePage}
  */
 export class AwhBookingPage extends BasePage {
   // ==========================================================================
@@ -57,6 +95,7 @@ export class AwhBookingPage extends BasePage {
   // ==========================================================================
   private dateTimeSectionHeading: Locator;
   private consultantDoctorSubtitle: Locator;
+  private consultingDoctorName: Locator;
   private doctorFilterButtons: Locator;
   private weekDateRangeText: Locator;
   private prevWeekButton: Locator;
@@ -118,7 +157,7 @@ export class AwhBookingPage extends BasePage {
   private matchedPatientCardButtons: Locator;
 
   // ==========================================================================
-  // 7. Validation Error Message Locators (Kept below)
+  // 7. Validation Error Message Locators
   // ==========================================================================
   private globalErrorMessage: Locator;
   private existingModalErrorMessage: Locator;
@@ -139,7 +178,7 @@ export class AwhBookingPage extends BasePage {
   };
 
   // ==========================================================================
-  // Log Message Variables (Strictly declared, passed as arguments to BasePage)
+  // Log Message Variables
   // ==========================================================================
   // 1. Landing & Navigation Logs
   private readonly navigatedToBookingLog = "Opening 'AWH Hospital Booking Form' page";
@@ -222,9 +261,13 @@ export class AwhBookingPage extends BasePage {
   private readonly verifiedPincodeErrorLog = "Verifying Pincode field validation error displayed";
   private readonly verifiedCityErrorLog = "Verifying City field validation error displayed";
 
-  // ==========================================================================
-  // Constructor: Initialize Locators in Logical Flow
-  // ==========================================================================
+  /**
+   * Initializes the AwhBookingPage instance and defines all element locators.
+   *
+   * @param {Page} page
+   *        Required.
+   *        The active Playwright Page instance driving the browser session.
+   */
   constructor(page: Page) {
     super(page);
 
@@ -243,7 +286,7 @@ export class AwhBookingPage extends BasePage {
     this.existingPatientTitle = this.page.locator("//h4[text()='Existing patient']");
     this.existingPatientDescription = this.page.locator("//p[contains(text(), 'You have visited us before')]");
 
-    this.continueButton = this.page.locator("//button[@type='submit' or (contains(., 'Continue') and not(contains(., 'existing')))]").first();
+    this.continueButton = this.page.locator("//button[@type='submit' and (contains(., 'Continue') or contains(., 'Confirm'))]");
     this.whatsAppFloatingButton = this.page.locator("//a[contains(@href, 'wa.me') or contains(@aria-label, 'WhatsApp')]");
     this.talkToAshaAgentButton = this.page.locator("//button[@title='Talk to Asha']");
 
@@ -256,7 +299,7 @@ export class AwhBookingPage extends BasePage {
     this.stateSelect = this.page.locator("//select[.//option[text()='Select state']]");
     this.cityInput = this.page.locator("//input[@placeholder='e.g. Hyderabad' or @autocomplete='address-level2' or contains(@placeholder, 'city')]");
     this.phoneInput = this.page.locator("//input[@placeholder='e.g. 98XXXXXXXX' or @type='tel' or @autocomplete='tel']");
-    this.sendOtpButton = this.page.locator("//button[text()='Send OTP' or text()='Resend']");
+    this.sendOtpButton = this.page.locator("//form//button[not(@type='submit') and (contains(normalize-space(.), 'Send OTP') or contains(normalize-space(.), 'Resend'))]");
     this.otpInput = this.page.locator("//input[@placeholder='Enter 6-digit code' or @autocomplete='one-time-code']");
     this.mobileLinkedWarning = this.page.locator("//p[contains(., 'already linked') or contains(., 'linked to')]");
     this.continueAsExistingPatientButton = this.page.locator("//button[contains(text(), 'Continue as existing patient') or contains(., 'existing patient')]");
@@ -264,15 +307,16 @@ export class AwhBookingPage extends BasePage {
     // 3. Date & Time Selection
     this.dateTimeSectionHeading = this.page.locator("//h2[contains(., 'Pick a date') or contains(., 'date & time')]");
     this.consultantDoctorSubtitle = this.page.locator("//header[.//h2[text()='Pick a date & time']]//p");
+    this.consultingDoctorName = this.page.locator("//p[contains(text(), 'CONSULTING DOCTOR')]/following-sibling::* | //div[contains(., 'CONSULTING DOCTOR')]//*[contains(text(), 'Dr.')]");
     this.doctorFilterButtons = this.page.locator("//div[contains(@class, 'flex-wrap')]//button[contains(., 'Dr.') or text()='All']");
-    this.weekDateRangeText = this.page.locator("//p[contains(text(), '202') or contains(text(), '–') or contains(@class, 'text-ink-soft')]").first();
-    this.prevWeekButton = this.page.locator("//button[@aria-label='Previous week' or contains(@aria-label, 'prev') or contains(@aria-label, 'Previous') or contains(@title, 'Prev')]").first();
-    this.nextWeekButton = this.page.locator("//button[@aria-label='Next week' or contains(@aria-label, 'next') or contains(@aria-label, 'Next') or contains(@title, 'Next')]").first();
-    this.dayButtons = this.page.locator("button.flex.flex-col.items-center:has(span)");
+    this.weekDateRangeText = this.page.locator("//div[contains(@class, 'justify-between')]//p[contains(@class, 'text-ink-soft')]");
+    this.prevWeekButton = this.page.locator("//div[button[contains(@class, 'flex-col')]]/button[following-sibling::button[contains(@class, 'flex-col')]] | //button[@aria-label='Previous week' or @title='Previous week']");
+    this.nextWeekButton = this.page.locator("//div[button[contains(@class, 'flex-col')]]/button[preceding-sibling::button[contains(@class, 'flex-col')]] | //button[@aria-label='Next week' or @title='Next week']");
+    this.dayButtons = this.page.locator("//button[contains(@class, 'flex-col') and .//span]");
     this.slotsLoadingText = this.page.locator("//p[text()='Loading open slots…']");
     this.noSlotsText = this.page.locator("//p[text()='No open slots for this date.']");
     this.slotButtons = this.page.locator("//button[contains(text(), ':') and (contains(text(), 'AM') or contains(text(), 'PM'))]");
-    this.firstAvailableSlotButton = this.page.locator("//button[contains(@class, 'whitespace-nowrap') and not(@disabled)]").first();
+    this.firstAvailableSlotButton = this.page.locator("(//div[contains(@class, 'grid') or @role='group']//button[contains(text(), ':') and not(@disabled)])[1]");
 
     // 4. Care Package Selection
     this.packageSectionHeading = this.page.locator("//h2[text()='Choose a care package']");
@@ -288,7 +332,7 @@ export class AwhBookingPage extends BasePage {
 
     // 5. Navigation & Appointment Confirmation
     this.backButton = this.page.locator("//button[contains(., 'Back') and not(@aria-label='Back')]");
-    this.confirmButton = this.page.locator("//button[contains(., 'Confirm') or contains(., 'Book appointment') or contains(., 'Reschedule') or contains(., 'Continue')]").first();
+    this.confirmButton = this.page.locator("//button[@type='submit' and (contains(., 'Confirm') or contains(., 'Book appointment') or contains(., 'Reschedule'))]");
 
     this.appointmentConfirmedHeading = this.page.locator("//h2[text()='Appointment confirmed']");
     this.upcomingAppointmentHeading = this.page.locator("//h2[text()='Your upcoming appointment']");
@@ -296,11 +340,11 @@ export class AwhBookingPage extends BasePage {
     this.bookAnotherAppointmentButton = this.page.locator("//button[text()='Book another appointment']");
     this.upcomingAppointmentsSectionTitle = this.page.locator("//span[text()='Your upcoming appointments']");
     this.upcomingAppointmentCards = this.page.locator("//ul//li[contains(@class, 'rounded-lg')]");
-    this.rescheduleAppointmentButton = this.page.locator("//button[contains(., 'Reschedule')]");
-    this.cancelAppointmentButton = this.page.locator("//button[contains(., 'Cancel')]");
+    this.rescheduleAppointmentButton = this.page.locator("//ul//li//button[contains(., 'Reschedule')]");
+    this.cancelAppointmentButton = this.page.locator("//ul//li//button[contains(., 'Cancel')]");
     this.cancelAppointmentDialog = this.page.locator("//div[@role='dialog'][.//h3[contains(text(), 'Cancel')] or .//*[contains(text(), 'Cancel')]]");
     this.cancelDialogTitle = this.page.locator("//div[@role='dialog']//h3[contains(text(), 'Cancel')]");
-    this.cancelDialogConfirmButton = this.page.locator("//div[@role='dialog']//button[contains(., 'Cancel')]");
+    this.cancelDialogConfirmButton = this.page.locator("//div[@role='dialog']//button[contains(@class, 'text-danger') or (contains(., 'Cancel') and not(contains(., 'Back')))]");
     this.cancelDialogBackButton = this.page.locator("//div[@role='dialog']//button[contains(., 'Back')]");
     this.chooseAnotherPatientButton = this.page.locator("//button[contains(., 'Choose another patient') or contains(., 'Book for another patient') or contains(., 'Change patient') or contains(., 'Another patient')]");
 
@@ -309,20 +353,20 @@ export class AwhBookingPage extends BasePage {
     this.existingVerifyDialogTitle = this.page.locator("//h2[@id='existing-verify-title' or text()='Verify with your registered mobile']");
     this.existingModalCloseButton = this.page.locator("//div[@role='dialog']//button[@aria-label='Back']");
     this.existingModalPhoneInput = this.page.locator("//div[@role='dialog']//input[@type='tel' or @placeholder='e.g. 98XXXXXXXX']");
-    this.existingModalSendOtpButton = this.page.locator("//div[@role='dialog']//button[text()='Send OTP' or text()='Resend']").first();
+    this.existingModalSendOtpButton = this.page.locator("//div[@role='dialog']//button[not(@type='submit') and (contains(normalize-space(.), 'Send OTP') or contains(normalize-space(.), 'Resend'))]");
     this.existingModalOtpInput = this.page.locator("//div[@role='dialog']//input[@placeholder='Enter 6-digit code']");
-    this.existingModalVerifyContinueButton = this.page.locator("//div[@role='dialog']//button[contains(., 'Verify & continue')]");
+    this.existingModalVerifyContinueButton = this.page.locator("//div[@role='dialog']//button[@type='submit' and contains(., 'Verify & continue')]");
     this.existingModalBackButton = this.page.locator("//div[@role='dialog']//div[contains(@class, 'justify-end')]//button[text()='Back']");
 
     this.matchedPatientsHeading = this.page.locator("//h2[text()='Patients on this mobile']");
     this.matchedPatientsSubtitle = this.page.locator("//p[text()='Please choose which patient this booking is for.']");
-    this.matchedPatientCardButtons = this.page.locator("ul.overscroll-contain button");
+    this.matchedPatientCardButtons = this.page.locator("//ul[contains(@class, 'overscroll-contain')]//button");
 
     // 7. Validation Error Messages
-    this.globalErrorMessage = this.page.locator("//p[contains(@class, 'text-rose') or contains(@class, 'text-red') or contains(@class, 'text-danger')]").first();
+    this.globalErrorMessage = this.page.locator("//form//p[contains(@class, 'text-rose') or contains(@class, 'text-danger')]");
     this.existingModalErrorMessage = this.page.locator("//div[@role='dialog']//p[contains(@class, 'text-rose') or contains(@class, 'text-danger')]");
-    this.dobErrorHint = this.page.locator("//p[contains(@class, 'text-rose') or contains(@class, 'text-red') or contains(@class, 'text-danger')]").first();
-    this.pincodeErrorHint = this.page.locator("//p[contains(@class, 'text-rose') or contains(@class, 'text-red') or contains(@class, 'text-danger')]").first();
+    this.dobErrorHint = this.page.locator("//input[@type='date']/..//p[contains(@class, 'text-rose') or contains(@class, 'text-danger')]");
+    this.pincodeErrorHint = this.page.locator("//input[contains(@placeholder, 'pincode') or contains(@placeholder, '6 digit')]/..//p[contains(@class, 'text-rose') or contains(@class, 'text-danger')]");
     this.cityErrorHint = this.page.locator("//p[(contains(@class, 'text-rose') or contains(@class, 'text-danger')) and contains(text(), 'city')]");
     this.dateTimeErrorMessage = this.page.locator("//p[(contains(@class, 'text-rose') or contains(@class, 'text-danger')) and (contains(text(), 'slot') or contains(text(), 'slots'))]");
   }
@@ -330,11 +374,33 @@ export class AwhBookingPage extends BasePage {
   // ==========================================================================
   // 1. Initial Landing, Language & Patient Type Actions
   // ==========================================================================
-  async navigateToBooking(baseURL: string) {
+
+  /**
+   * Navigates the browser to the AWH Hospital booking page URL.
+   *
+   * @param {string} baseURL
+   *        Required.
+   *        Target base URL of the booking application.
+   *        Example: "https://awh-website-booking-form.vercel.app/"
+   * @returns {Promise<void>}
+   */
+  async navigateToBooking(baseURL: string): Promise<void> {
     await super.navigateTo(baseURL, undefined, this.navigatedToBookingLog);
   }
 
-  async selectLanguage(language: string) {
+  /**
+   * Switches the active language in the top-right header language group.
+   * Supports English ('en', 'english'), Hindi ('hi', 'hindi', 'हिन्दी'), and Telugu ('te', 'telugu', 'తెలుగు').
+   *
+   * @param {string} language
+   *        Required.
+   *        Case-insensitive language name or localized string.
+   *        Example: "English", "Hindi", "Telugu", "te"
+   * @returns {Promise<void>}
+   * @throws {Error}
+   *         Thrown if the provided language is not in the supported language map.
+   */
+  async selectLanguage(language: string): Promise<void> {
     const normalized = language.trim().toLowerCase().replace(/\s+/g, '');
     const languageMap: Record<string, { button: Locator; log: string }> = {
       english: { button: this.englishLangButton, log: this.switchedToEnglishLog },
@@ -361,9 +427,17 @@ export class AwhBookingPage extends BasePage {
 
   /**
    * Selects patient type dynamically based on input parameter.
-   * Tolerant to casing and surrounding or internal spaces (e.g. "new", "New patient", " NEW ", "existing", "Existing patient", " EXISTING ").
+   * Tolerant to casing and surrounding or internal spaces (e.g. "new", "New patient", "existing", "Existing patient").
+   *
+   * @param {string} patientType
+   *        Required.
+   *        Patient type indicator string. Valid inputs contain 'new' or 'existing'.
+   *        Example: "New patient", "existing"
+   * @returns {Promise<void>}
+   * @throws {Error}
+   *         Thrown if patientType matches neither 'new' nor 'existing'.
    */
-  async selectPatientType(patientType: string) {
+  async selectPatientType(patientType: string): Promise<void> {
     const normalized = patientType.trim().toLowerCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ');
     if (normalized.includes('new') || normalized === 'n') {
       await this.selectNewPatient();
@@ -374,7 +448,12 @@ export class AwhBookingPage extends BasePage {
     }
   }
 
-  async selectNewPatient() {
+  /**
+   * Selects the "New patient" card on the landing screen.
+   *
+   * @returns {Promise<void>}
+   */
+  async selectNewPatient(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.newPatientButton],
       { state: BasePage.ElementState.VISIBLE },
@@ -383,7 +462,12 @@ export class AwhBookingPage extends BasePage {
     await super.clickOnElement(this.newPatientButton, this.selectedNewPatientLog);
   }
 
-  async selectExistingPatient() {
+  /**
+   * Selects the "Existing patient" card on the landing screen.
+   *
+   * @returns {Promise<void>}
+   */
+  async selectExistingPatient(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.existingPatientButton],
       { state: BasePage.ElementState.VISIBLE },
@@ -392,7 +476,12 @@ export class AwhBookingPage extends BasePage {
     await super.clickOnElement(this.existingPatientButton, this.selectedExistingPatientLog);
   }
 
-  async clickContinue() {
+  /**
+   * Clicks the primary "Continue" or "Confirm" submit button at the bottom of the active view.
+   *
+   * @returns {Promise<void>}
+   */
+  async clickContinue(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.continueButton],
       { state: BasePage.ElementState.VISIBLE },
@@ -401,68 +490,180 @@ export class AwhBookingPage extends BasePage {
     await super.clickOnElement(this.continueButton, this.clickedContinueLog);
   }
 
-  async clickWhatsAppFloatingButton() {
+  /**
+   * Clicks the floating WhatsApp support link button.
+   *
+   * @returns {Promise<void>}
+   */
+  async clickWhatsAppFloatingButton(): Promise<void> {
     await super.clickOnElement(this.whatsAppFloatingButton, this.clickedWhatsAppLog);
   }
 
-  async clickTalkToAshaAgent() {
+  /**
+   * Clicks the "Talk to Asha" virtual agent assistance button.
+   *
+   * @returns {Promise<void>}
+   */
+  async clickTalkToAshaAgent(): Promise<void> {
     await super.clickOnElement(this.talkToAshaAgentButton, this.clickedTalkToAshaLog);
   }
 
   // ==========================================================================
   // 2. New Patient Intake Form Actions
   // ==========================================================================
-  async enterFullName(name: string) {
+
+  /**
+   * Fills the patient's full name into the intake form.
+   *
+   * @param {string} name
+   *        Required.
+   *        Patient's legal full name.
+   *        Example: "Ramesh Kumar"
+   * @returns {Promise<void>}
+   */
+  async enterFullName(name: string): Promise<void> {
     await super.enterValueForInputElement(this.fullNameInput, name.trim(), this.enteredFullNameLog);
   }
 
-  async enterDateOfBirth(dob: string) {
+  /**
+   * Fills the patient's date of birth in YYYY-MM-DD format into the native HTML5 date input.
+   *
+   * @param {string} dob
+   *        Required.
+   *        Date of birth in ISO format (YYYY-MM-DD).
+   *        Example: "1990-05-15"
+   * @returns {Promise<void>}
+   */
+  async enterDateOfBirth(dob: string): Promise<void> {
     await super.enterValueForInputElement(this.dobInput, dob.trim(), this.enteredDobLog);
   }
 
+  /**
+   * Selects gender from the HTML select dropdown.
+   *
+   * @param {string} gender
+   *        Required.
+   *        Target gender option label (e.g. "Male", "Female", "Other").
+   * @returns {Promise<string>}
+   *          Selected option text.
+   */
   async selectGender(gender: string): Promise<string> {
     return await super.selectDropdownOption(this.genderSelect, gender, `${this.selectedGenderLog}: ${gender}`);
   }
 
-  async enterPincode(pincode: string) {
+  /**
+   * Enters the 6-digit postal pincode into the intake form.
+   *
+   * @param {string} pincode
+   *        Required.
+   *        6-digit Indian postal code.
+   *        Example: "500001"
+   * @returns {Promise<void>}
+   */
+  async enterPincode(pincode: string): Promise<void> {
     await super.enterValueForInputElement(this.pincodeInput, pincode.trim(), this.enteredPincodeLog);
   }
 
-  async clearPincode() {
+  /**
+   * Clears the pincode field.
+   *
+   * @returns {Promise<void>}
+   */
+  async clearPincode(): Promise<void> {
     await super.clearInputField(this.pincodeInput, this.clearedPincodeLog);
   }
 
+  /**
+   * Selects state from the state select dropdown.
+   *
+   * @param {string} state
+   *        Required.
+   *        State name (e.g. "Telangana", "Andhra Pradesh").
+   * @returns {Promise<string>}
+   */
   async selectState(state: string): Promise<string> {
     return await super.selectDropdownOption(this.stateSelect, state, `${this.selectedStateLog}: ${state}`);
   }
 
-  async enterCity(city: string) {
+  /**
+   * Enters city name into the city text field.
+   *
+   * @param {string} city
+   *        Required.
+   *        City name (e.g. "Hyderabad").
+   * @returns {Promise<void>}
+   */
+  async enterCity(city: string): Promise<void> {
     await super.enterValueForInputElement(this.cityInput, city.trim(), this.enteredCityLog);
   }
 
-  async enterMobileNumber(phone: string) {
+  /**
+   * Enters a 10-digit mobile phone number into the intake form and checks for proactive duplicate link warnings.
+   *
+   * @param {string} phone
+   *        Required.
+   *        10-digit mobile number.
+   *        Example: "9876543210"
+   * @returns {Promise<void>}
+   */
+  async enterMobileNumber(phone: string): Promise<void> {
     await super.enterValueForInputElement(this.phoneInput, phone.trim(), this.enteredPhoneLog);
-    // Proactively check if the application displays a validation message (e.g. number already linked)
+    // Allow brief time for React state to validate whether number is linked to existing accounts
     await this.page.waitForTimeout(500);
     await this.checkAndReportMobileValidation(phone.trim());
   }
 
-  async getMobileLinkedWarningText(): Promise<string> {
-    await this.mobileLinkedWarning.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+  /**
+   * Retrieves the warning message displayed when a mobile number is already linked to existing patients.
+   *
+   * @param {number} [timeout=8000]
+   *        Optional.
+   *        Maximum wait duration in milliseconds.
+   *        Default: 8000.
+   * @returns {Promise<string>}
+   *          Trimmed warning text.
+   */
+  async getMobileLinkedWarningText(timeout: number = 8000): Promise<string> {
+    await this.mobileLinkedWarning.waitFor({ state: 'visible', timeout }).catch(() => {});
     return (await this.mobileLinkedWarning.innerText().catch(() => '')).trim();
   }
 
-  async isMobileLinkedToExisting(): Promise<boolean> {
-    return await this.mobileLinkedWarning.isVisible({ timeout: 1500 }).catch(() => false);
+  /**
+   * Checks whether the "already linked to existing patient" warning banner is visible.
+   *
+   * @param {number} [timeout=8000]
+   *        Optional.
+   *        Wait duration in milliseconds.
+   * @returns {Promise<boolean>}
+   *          True if warning banner is visible; otherwise false.
+   */
+  async isMobileLinkedToExisting(timeout: number = 8000): Promise<boolean> {
+    try {
+      await this.mobileLinkedWarning.waitFor({ state: 'visible', timeout });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  async clickContinueAsExistingPatient() {
+  /**
+   * Clicks the "Continue as existing patient" button displayed beneath the mobile duplicate warning.
+   *
+   * @returns {Promise<void>}
+   */
+  async clickContinueAsExistingPatient(): Promise<void> {
     await super.clickOnElement(this.continueAsExistingPatientButton, this.clickedContinueAsExistingPatientLog);
   }
 
   /**
-   * Checks for any mobile validation or duplicate linked warning on the intake form.
-   * If detected, logs a structured audit to the console.
+   * Audits the intake form for mobile number validation warnings.
+   * If detected, logs a structured diagnosis block to stdout.
+   *
+   * @param {string} [phone]
+   *        Optional.
+   *        Phone number being evaluated.
+   * @returns {Promise<string | null>}
+   *          The warning message string if present; otherwise null.
    */
   async checkAndReportMobileValidation(phone?: string): Promise<string | null> {
     const isLinked = await this.isMobileLinkedToExisting();
@@ -483,85 +684,62 @@ export class AwhBookingPage extends BasePage {
   }
 
   /**
-   * Combined Send OTP & Auto-fill method for New Patient Intake.
-   * 
-   * BULLETPROOF IMPLEMENTATION:
-   * Uses a multi-strategy retry loop to guarantee the OTP is entered
-   * regardless of UI lag, network speed, or CI environment timing.
-   * 
-   * Strategy 1: Wait for the field to become enabled naturally (application flow)
-   * Strategy 2: Force-enable via DOM evaluation and use fill()
-   * Strategy 3: Force-enable via DOM evaluation and type character-by-character
+   * Triggers the Send OTP button on the intake form and fills the OTP code once the field becomes visible.
+   *
+   * @param {string} [otpCode='123456']
+   *        Optional.
+   *        The OTP code to enter.
+   *        Default: '123456'.
+   * @returns {Promise<string>}
+   *          The entered OTP code.
    */
   async sendOtp(otpCode?: string): Promise<string> {
-    await super.clickOnElement(this.sendOtpButton, this.clickedSendOtpLog);
     const otp = otpCode ? otpCode.trim() : '123456';
-    
-    const MAX_RETRIES = 3;
-    let filled = false;
-
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        // Wait progressively longer each attempt for the app to enable the field
-        await this.page.waitForTimeout(500 * attempt);
-
-        // Force-enable the input via DOM in case the app hasn't done it yet
-        await this.otpInput.evaluate((el: HTMLInputElement) => {
-          el.disabled = false;
-          el.removeAttribute('disabled');
-          el.style.pointerEvents = 'auto';
-          el.style.opacity = '1';
-        }).catch(() => {});
-
-        // Attempt 1 & 2: Use standard fill
-        if (attempt <= 2) {
-          await this.otpInput.fill(otp, { timeout: 5000 });
-        } else {
-          // Attempt 3: Click + type character by character as last resort
-          await this.otpInput.click({ force: true });
-          await this.page.keyboard.press('Control+A');
-          await this.page.keyboard.press('Backspace');
-          await this.otpInput.pressSequentially(otp, { delay: 50 });
-        }
-
-        // Verify the value was actually entered
-        const currentValue = await this.otpInput.inputValue().catch(() => '');
-        if (currentValue === otp) {
-          filled = true;
-          console.log(`  ✅ OTP entered successfully on attempt ${attempt}`);
-          break;
-        }
-      } catch (err: any) {
-        console.warn(`  ⚠️ OTP entry attempt ${attempt}/${MAX_RETRIES} failed: ${err.message.split('\n')[0]}`);
-        if (attempt === MAX_RETRIES) {
-          throw new Error(`[OTP Entry Failed] Could not enter OTP after ${MAX_RETRIES} attempts. Last error: ${err.message.split('\n')[0]}`);
-        }
-      }
-    }
-
-    if (!filled) {
-      throw new Error(`[OTP Entry Failed] OTP value was not confirmed in the input field after all retry attempts.`);
-    }
-
+    await super.clickOnElement(this.sendOtpButton, this.clickedSendOtpLog);
+    await this.otpInput.waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(500);
+    await this.otpInput.fill(otp);
     return otp;
   }
 
+  /**
+   * Convenience alias for {@link sendOtp}.
+   *
+   * @param {string} [otpCode]
+   * @returns {Promise<string>}
+   */
   async sendAndEnterOtp(otpCode?: string): Promise<string> {
     return await this.sendOtp(otpCode);
   }
 
+  /**
+   * Returns whether the Send OTP button is currently disabled.
+   *
+   * @returns {Promise<boolean>}
+   */
   async isSendOtpButtonDisabled(): Promise<boolean> {
     return await this.sendOtpButton.isDisabled().catch(() => false);
   }
 
-  async clickSendOtp() {
+  /**
+   * Clicks the Send OTP button without auto-filling the OTP field.
+   *
+   * @returns {Promise<void>}
+   */
+  async clickSendOtp(): Promise<void> {
     await super.clickOnElement(this.sendOtpButton, this.clickedSendOtpLog);
   }
 
-  async enterOtp(otp: string) {
+  /**
+   * Enters the specified OTP code into the intake form OTP field.
+   *
+   * @param {string} otp
+   *        Required.
+   *        6-digit OTP code string.
+   * @returns {Promise<void>}
+   */
+  async enterOtp(otp: string): Promise<void> {
     const code = otp ? otp.trim() : '123456';
-
-    // Same bulletproof strategy for standalone OTP entry
     await this.page.waitForTimeout(500);
     await this.otpInput.evaluate((el: HTMLInputElement) => {
       el.disabled = false;
@@ -573,7 +751,7 @@ export class AwhBookingPage extends BasePage {
     try {
       await this.otpInput.fill(code, { timeout: 5000 });
     } catch {
-      // Fallback: character-by-character
+      // Fallback: character-by-character typing
       await this.otpInput.click({ force: true });
       await this.page.keyboard.press('Control+A');
       await this.page.keyboard.press('Backspace');
@@ -581,30 +759,45 @@ export class AwhBookingPage extends BasePage {
     }
   }
 
-  async clearFullName() {
+  /** Clears the full name input field. */
+  async clearFullName(): Promise<void> {
     await super.clearInputField(this.fullNameInput, this.clearedFullNameLog);
   }
 
-  async clearDateOfBirth() {
+  /** Clears the date of birth input field. */
+  async clearDateOfBirth(): Promise<void> {
     await super.clearInputField(this.dobInput, this.clearedDobLog);
   }
 
-  async clearCity() {
+  /** Clears the city input field. */
+  async clearCity(): Promise<void> {
     await super.clearInputField(this.cityInput, this.clearedCityLog);
   }
 
-  async clearMobileNumber() {
+  /** Clears the mobile number input field. */
+  async clearMobileNumber(): Promise<void> {
     await super.clearInputField(this.phoneInput, this.clearedPhoneLog);
   }
 
-  async clearOtp() {
+  /** Clears the OTP input field. */
+  async clearOtp(): Promise<void> {
     await super.clearInputField(this.otpInput, this.clearedOtpLog);
   }
 
   // ==========================================================================
   // 3. Date & Time Selection Actions
   // ==========================================================================
-  async selectDoctor(doctorName: string) {
+
+  /**
+   * Selects a specialist doctor filter button by doctor name.
+   *
+   * @param {string} doctorName
+   *        Required.
+   *        Name of the consulting doctor (e.g. "Dr. Ramesh", "All").
+   * @returns {Promise<string>}
+   *          The name or title of the selected doctor.
+   */
+  async selectDoctor(doctorName: string): Promise<string> {
     const count = await this.doctorFilterButtons.count().catch(() => 0);
     if (count > 0) {
       const selected = await super.selectElementFromListOrGrid(
@@ -614,24 +807,38 @@ export class AwhBookingPage extends BasePage {
       ).catch(() => '');
       if (selected) return selected;
     }
+    const cardText = await this.consultingDoctorName.innerText().catch(() => '');
+    if (cardText) {
+      return cardText.trim();
+    }
     return doctorName;
   }
 
-  async selectDoctorByName(doctorName: string) {
+  /** Alias for {@link selectDoctor}. */
+  async selectDoctorByName(doctorName: string): Promise<string> {
     return await this.selectDoctor(doctorName);
   }
 
-  async clickPreviousWeek() {
+  /** Clicks the previous week button to shift the calendar view backward. */
+  async clickPreviousWeek(): Promise<void> {
     await super.clickOnElement(this.prevWeekButton, this.clickedPrevWeekLog);
   }
 
-  async clickNextWeek() {
+  /** Clicks the next week button to shift the calendar view forward. */
+  async clickNextWeek(): Promise<void> {
     await super.clickOnElement(this.nextWeekButton, this.clickedNextWeekLog);
   }
 
   /**
    * Navigates the calendar week-by-week until the specified month is displayed in the calendar header.
-   * Parameter-wise & case-insensitive (e.g. "Sep", "September", "October", "09", 9).
+   *
+   * @param {string} targetMonth
+   *        Required.
+   *        Target month name or abbreviation (e.g. "Sep", "September", "October", "09").
+   * @param {number} [maxWeeks=8]
+   *        Optional.
+   *        Maximum number of weekly navigation clicks. Default: 8.
+   * @returns {Promise<void>}
    */
   async navigateToMonth(targetMonth: string, maxWeeks: number = 8): Promise<void> {
     await super.navigateCalendarToMonth(
@@ -643,15 +850,26 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
+  /**
+   * Returns the current date range text displayed above the calendar days grid.
+   *
+   * @returns {Promise<string>}
+   */
   async getCalendarMonthRangeText(): Promise<string> {
     return (await this.weekDateRangeText.innerText()).trim();
   }
 
   /**
-   * Selects an appointment date. Parameter-wise: accepts full date strings (YYYY-MM-DD,
-   * DD-MM-YYYY, DD/MM/YYYY, "Sep 16"), day number (e.g. 16, "16"), or zero-based index (e.g. 0),
-   * with optional target month.
-   * Automatically parses the date and navigates calendar weeks and months to find and select that date.
+   * Selects an appointment date from the calendar grid with automatic week/month navigation.
+   *
+   * @param {number | string} date
+   *        Required.
+   *        Date token (ISO format, DD-MM-YYYY, day number, or zero-based index 0-6).
+   * @param {string} [month]
+   *        Optional.
+   *        Target month if not included in date string.
+   * @returns {Promise<string>}
+   *          The button text of the selected date.
    */
   async selectDate(date: number | string, month?: string): Promise<string> {
     return await super.selectCalendarDateWithNavigation(
@@ -665,17 +883,65 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
+  /**
+   * Selects an open appointment time slot from the active day's slot grid.
+   * If no slots are open on the current date, automatically shifts to the next day in the active week.
+   *
+   * @param {string | number} [slot='first']
+   *        Optional.
+   *        Specific time slot string (e.g. "10:00 AM") or keyword 'first'. Default: 'first'.
+   * @returns {Promise<string>}
+   *          The text of the selected slot button.
+   */
   async selectTimeSlot(slot: string | number = 'first'): Promise<string> {
-    return await super.selectElementFromListOrGrid(
-      this.slotButtons,
-      slot,
-      `${this.selectedSlotLog}: ${slot}`
-    );
+    const slotStr = slot.toString().trim();
+    await Promise.race([
+      this.firstAvailableSlotButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {}),
+      this.noSlotsText.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
+    ]);
+
+    // If no slots on current date, automatically iterate through other days in current week view
+    if (await this.noSlotsText.isVisible().catch(() => false)) {
+      const dayCount = await this.dayButtons.count();
+      for (let i = 0; i < dayCount; i++) {
+        await this.dayButtons.nth(i).click();
+        await this.page.waitForTimeout(500);
+        if (await this.firstAvailableSlotButton.isVisible().catch(() => false)) {
+          break;
+        }
+      }
+    }
+
+    if (slotStr.toLowerCase() !== 'first') {
+      const specificSlot = this.page.locator(`//button[contains(text(), ':') and contains(text(), '${slotStr}') and not(@disabled)]`);
+      const isVisible = await specificSlot.isVisible().catch(() => false);
+      if (isVisible) {
+        const text = (await specificSlot.innerText()).trim();
+        await specificSlot.click();
+        return text;
+      }
+    }
+
+    await this.firstAvailableSlotButton.waitFor({ state: 'visible', timeout: 8000 });
+    const slotText = (await this.firstAvailableSlotButton.innerText()).trim();
+    await this.firstAvailableSlotButton.click();
+    return slotText;
   }
 
   /**
-   * Combined date & time selection: picks the date (handling any week/month navigation),
-   * and then selects the time slot.
+   * Combined convenience method: selects the appointment date and then picks a time slot.
+   *
+   * @param {number | string} date
+   *        Required.
+   *        Date token or index.
+   * @param {string | number} [slot='first']
+   *        Optional.
+   *        Time slot identifier. Default: 'first'.
+   * @param {string} [month]
+   *        Optional.
+   *        Month name or abbreviation.
+   * @returns {Promise<string>}
+   *          Selected time slot text.
    */
   async selectDateTime(date: number | string, slot: string | number = 'first', month?: string): Promise<string> {
     await this.selectDate(date, month);
@@ -685,6 +951,15 @@ export class AwhBookingPage extends BasePage {
   // ==========================================================================
   // 4. Care Package Selection Actions
   // ==========================================================================
+
+  /**
+   * Selects a care package card by name or tier (Basic/Silver, Advanced/Gold, Premium/Platinum).
+   *
+   * @param {string | number} packageName
+   *        Required.
+   *        Package name, tier keyword, or zero-based card index.
+   * @returns {Promise<string>}
+   */
   async selectCarePackageByName(packageName: string | number): Promise<string> {
     let target = packageName;
     if (typeof packageName === 'string') {
@@ -700,38 +975,47 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
+  /** Alias for {@link selectCarePackageByName}. */
   async selectCarePackage(packageName: string | number): Promise<string> {
     return await this.selectCarePackageByName(packageName);
   }
 
-  async selectBasicPackage() {
+  /** Selects the Basic care package card. */
+  async selectBasicPackage(): Promise<string> {
     return await this.selectCarePackageByName('Basic');
   }
 
-  async selectAdvancedPackage() {
+  /** Selects the Advanced care package card. */
+  async selectAdvancedPackage(): Promise<string> {
     return await this.selectCarePackageByName('Advanced');
   }
 
-  async selectPremiumPackage() {
+  /** Selects the Premium care package card. */
+  async selectPremiumPackage(): Promise<string> {
     return await this.selectCarePackageByName('Premium');
   }
 
-  async selectSilverPackage() {
+  /** Selects the Silver care package card (mapped to Basic). */
+  async selectSilverPackage(): Promise<string> {
     return await this.selectBasicPackage();
   }
 
-  async selectGoldPackage() {
+  /** Selects the Gold care package card (mapped to Advanced). */
+  async selectGoldPackage(): Promise<string> {
     return await this.selectAdvancedPackage();
   }
 
-  async selectPlatinumPackage() {
+  /** Selects the Platinum care package card (mapped to Premium). */
+  async selectPlatinumPackage(): Promise<string> {
     return await this.selectPremiumPackage();
   }
 
   // ==========================================================================
   // 5. Navigation & Appointment Confirmation Actions
   // ==========================================================================
-  async clickBack() {
+
+  /** Clicks the Back button to return to the previous screen. */
+  async clickBack(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.backButton],
       { state: BasePage.ElementState.VISIBLE },
@@ -740,7 +1024,8 @@ export class AwhBookingPage extends BasePage {
     await super.clickOnElement(this.backButton, this.clickedBackLog);
   }
 
-  async clickConfirm() {
+  /** Clicks the final Confirm / Book Appointment button. */
+  async clickConfirm(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.confirmButton],
       { state: BasePage.ElementState.VISIBLE },
@@ -749,94 +1034,162 @@ export class AwhBookingPage extends BasePage {
     await super.clickOnElement(this.confirmButton, this.clickedConfirmLog);
   }
 
+  /**
+   * Retrieves the confirmation badge / pill text displayed after successful appointment booking.
+   *
+   * @returns {Promise<string>}
+   */
   async getConfirmationText(): Promise<string> {
     return (await this.appointmentConfirmationPill.innerText()).trim();
   }
 
-  async clickBookAnotherAppointment() {
+  /** Clicks the "Book another appointment" button on the confirmation screen. */
+  async clickBookAnotherAppointment(): Promise<void> {
     await super.clickOnElement(this.bookAnotherAppointmentButton, this.clickedBookAnotherLog);
   }
 
-  async clickReschedule(index: number = 0) {
+  /**
+   * Clicks the Reschedule button on an upcoming appointment card.
+   *
+   * @param {number} [index=0]
+   *        Optional.
+   *        Zero-based index of the appointment card. Default: 0.
+   * @returns {Promise<void>}
+   */
+  async clickReschedule(index: number = 0): Promise<void> {
     const btn = this.rescheduleAppointmentButton.nth(index);
     await super.clickOnElement(btn, this.clickedRescheduleLog);
   }
 
-  async clickRescheduleAppointment(index: number = 0) {
+  /** Alias for {@link clickReschedule}. */
+  async clickRescheduleAppointment(index: number = 0): Promise<void> {
     await this.clickReschedule(index);
   }
 
-  async clickCancel(index: number = 0) {
+  /**
+   * Clicks the Cancel button on an upcoming appointment card.
+   *
+   * @param {number} [index=0]
+   *        Optional.
+   *        Zero-based index of the appointment card. Default: 0.
+   * @returns {Promise<void>}
+   */
+  async clickCancel(index: number = 0): Promise<void> {
     const btn = this.cancelAppointmentButton.nth(index);
     await super.clickOnElement(btn, this.clickedCancelLog);
   }
 
-  async clickCancelAppointment(index: number = 0) {
+  /** Alias for {@link clickCancel}. */
+  async clickCancelAppointment(index: number = 0): Promise<void> {
     await this.clickCancel(index);
   }
 
-  async confirmCancel() {
+  /** Confirms appointment cancellation inside the cancellation confirmation modal dialog. */
+  async confirmCancel(): Promise<void> {
     await super.clickOnElement(this.cancelDialogConfirmButton, this.confirmedCancelLog);
   }
 
-  async confirmCancelInModal() {
+  /** Alias for {@link confirmCancel}. */
+  async confirmCancelInModal(): Promise<void> {
     await this.confirmCancel();
   }
 
-  async dismissCancelModal() {
+  /** Dismisses the appointment cancellation modal by clicking its Back button. */
+  async dismissCancelModal(): Promise<void> {
     await super.clickOnElement(this.cancelDialogBackButton, this.dismissedCancelLog);
   }
 
-  async clickChooseAnotherPatient() {
+  /** Clicks the "Choose another patient" button to switch patient profiles. */
+  async clickChooseAnotherPatient(): Promise<void> {
     await super.clickOnElement(this.chooseAnotherPatientButton, this.clickedChooseAnotherPatientLog);
   }
 
   // ==========================================================================
   // 6. Existing Patient Verification Modal & Matched Profiles Actions
   // ==========================================================================
-  async enterExistingPatientPhone(phone: string) {
+
+  /**
+   * Fills the registered mobile phone number in the existing patient verification modal dialog.
+   *
+   * @param {string} phone
+   *        Required.
+   *        10-digit registered phone number.
+   * @returns {Promise<void>}
+   */
+  async enterExistingPatientPhone(phone: string): Promise<void> {
     await super.enterValueForInputElement(this.existingModalPhoneInput, phone.trim(), this.enteredModalPhoneLog);
   }
 
+  /** Returns whether the Send OTP button in the verification modal is currently disabled. */
+  async isExistingModalSendOtpDisabled(): Promise<boolean> {
+    return await this.existingModalSendOtpButton.isDisabled().catch(() => false);
+  }
+
   /**
-   * Combined Send OTP & Auto-fill method for Existing Patient Verification Modal.
-   * Clicks 'Send OTP' and enters the provided OTP code passed from test spec.
+   * Combined Send OTP & Auto-fill method for the Existing Patient Verification Modal.
+   * Clicks 'Send OTP', waits for the input, and enters the provided OTP code.
+   *
+   * @param {string} [otpCode='123456']
+   *        Optional.
+   *        OTP code to enter. Default: '123456'.
+   * @returns {Promise<string>}
    */
   async sendExistingModalOtp(otpCode?: string): Promise<string> {
     await super.clickOnElement(this.existingModalSendOtpButton, this.clickedModalSendOtpLog);
-    await this.page.waitForTimeout(500);
     const otp = otpCode ? otpCode.trim() : '123456';
-    await this.existingModalOtpInput.evaluate((el: HTMLInputElement) => { el.disabled = false; }).catch(() => {});
-    if (otp) {
-      await super.enterValueForInputElement(this.existingModalOtpInput, otp, `${this.enteredModalOtpLog}: ${otp}`);
-    }
+    await this.existingModalOtpInput.waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(400);
+    await this.existingModalOtpInput.fill(otp);
+    await this.existingModalVerifyContinueButton.waitFor({ state: 'visible', timeout: 10000 });
     return otp;
   }
 
+  /** Alias for {@link sendExistingModalOtp}. */
   async sendExistingPatientOtp(otpCode?: string): Promise<string> {
     return await this.sendExistingModalOtp(otpCode);
   }
 
-  async clickExistingModalSendOtp() {
+  /** Clicks the Send OTP button in the verification modal without entering the OTP code. */
+  async clickExistingModalSendOtp(): Promise<void> {
     await super.clickOnElement(this.existingModalSendOtpButton, this.clickedModalSendOtpLog);
-    await this.page.waitForTimeout(500);
-    await this.existingModalOtpInput.evaluate((el: HTMLInputElement) => { el.disabled = false; }).catch(() => {});
+    await this.existingModalOtpInput.waitFor({ state: 'visible', timeout: 10000 });
   }
 
-  async enterExistingModalOtp(otp: string) {
-    await this.existingModalOtpInput.evaluate((el: HTMLInputElement) => { el.disabled = false; }).catch(() => {});
-    await super.enterValueForInputElement(this.existingModalOtpInput, otp.trim(), this.enteredModalOtpLog);
+  /**
+   * Enters the OTP code into the modal input field.
+   *
+   * @param {string} otp
+   *        Required.
+   *        6-digit OTP code string.
+   * @returns {Promise<void>}
+   */
+  async enterExistingModalOtp(otp: string): Promise<void> {
+    await this.existingModalOtpInput.waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForTimeout(400);
+    await this.existingModalOtpInput.fill(otp.trim());
   }
 
-  async clickExistingModalVerifyContinue() {
+  /** Clicks the 'Verify & continue' button in the existing patient verification modal. */
+  async clickExistingModalVerifyContinue(): Promise<void> {
+    await this.existingModalVerifyContinueButton.waitFor({ state: 'visible', timeout: 10000 });
     await super.clickOnElement(this.existingModalVerifyContinueButton, this.clickedModalVerifyContinueLog);
   }
 
-  async closeExistingVerifyModal() {
+  /** Closes the existing patient verification modal by clicking the back / close button. */
+  async closeExistingVerifyModal(): Promise<void> {
     await super.clickOnElement(this.existingModalCloseButton, this.closedModalLog);
   }
 
-  async selectMatchedPatient(patient: string | number = 0) {
+  /**
+   * Selects a matched patient profile from the list of patients associated with the verified phone number.
+   *
+   * @param {string | number} [patient=0]
+   *        Optional.
+   *        Patient legal name or zero-based card index. Default: 0.
+   * @returns {Promise<string>}
+   *          Text content of the selected patient card.
+   */
+  async selectMatchedPatient(patient: string | number = 0): Promise<string> {
     return await super.selectElementFromListOrGrid(
       this.matchedPatientCardButtons,
       patient,
@@ -844,18 +1197,22 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
-  async selectMatchedPatientByIndex(index: number = 0) {
+  /** Selects a matched patient profile by zero-based index. */
+  async selectMatchedPatientByIndex(index: number = 0): Promise<string> {
     return await this.selectMatchedPatient(index);
   }
 
-  async selectMatchedPatientByName(name: string) {
+  /** Selects a matched patient profile by patient name. */
+  async selectMatchedPatientByName(name: string): Promise<string> {
     return await this.selectMatchedPatient(name);
   }
 
   // ==========================================================================
-  // 7. Screen & Form Validation Error Verification Methods (Kept Below)
+  // 7. Screen & Form Validation Error Verification Methods
   // ==========================================================================
-  async verifyBookingPageLoaded() {
+
+  /** Asserts that the landing page has loaded with patient type cards visible. */
+  async verifyBookingPageLoaded(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.pageTitleHeading, this.newPatientButton, this.existingPatientButton],
       { state: BasePage.ElementState.VISIBLE },
@@ -863,7 +1220,8 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
-  async verifyPatientTypeScreenDisplayed() {
+  /** Asserts that the patient type selection screen is displayed. */
+  async verifyPatientTypeScreenDisplayed(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.newPatientButton, this.existingPatientButton],
       { state: BasePage.ElementState.VISIBLE },
@@ -871,7 +1229,8 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
-  async verifyNewPatientIntakeScreenDisplayed() {
+  /** Asserts that the new patient intake form screen and all primary input fields are visible. */
+  async verifyNewPatientIntakeScreenDisplayed(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.intakeSectionHeading, this.fullNameInput, this.dobInput, this.genderSelect, this.stateSelect, this.phoneInput],
       { state: BasePage.ElementState.VISIBLE },
@@ -879,7 +1238,11 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
-  async verifyDateTimeScreenDisplayed() {
+  /**
+   * Asserts that the Date & Time appointment selection screen is displayed.
+   * Handles pre-existing upcoming appointment screens by clicking reschedule or book another if necessary.
+   */
+  async verifyDateTimeScreenDisplayed(): Promise<void> {
     const isUpcoming = await this.upcomingAppointmentHeading.isVisible({ timeout: 2000 }).catch(() => false);
     if (isUpcoming) {
       const isReschedule = await this.rescheduleAppointmentButton.isVisible({ timeout: 1000 }).catch(() => false);
@@ -889,18 +1252,20 @@ export class AwhBookingPage extends BasePage {
         await this.bookAnotherAppointmentButton.click().catch(() => {});
       }
     }
-    await this.dateTimeSectionHeading.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+    await this.dateTimeSectionHeading.waitFor({ state: 'visible', timeout: 15000 });
   }
 
-  async verifyCarePackageScreenDisplayed() {
+  /** Asserts that the care package selection cards are visible. */
+  async verifyCarePackageScreenDisplayed(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
-      [this.packageSectionHeading, this.packageCards.first()],
+      [this.packageSectionHeading, this.basicPackageCard],
       { state: BasePage.ElementState.VISIBLE },
       this.verifiedCarePackageScreenLog
     );
   }
 
-  async verifyExistingPatientModalDisplayed() {
+  /** Asserts that the existing patient mobile verification modal dialog is visible. */
+  async verifyExistingPatientModalDisplayed(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.existingVerifyDialog, this.existingVerifyDialogTitle, this.existingModalPhoneInput, this.existingModalSendOtpButton],
       { state: BasePage.ElementState.VISIBLE },
@@ -908,15 +1273,17 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
-  async verifyMatchedPatientsScreenDisplayed() {
+  /** Asserts that the matched patients profile selection screen is displayed. */
+  async verifyMatchedPatientsScreenDisplayed(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
-      [this.matchedPatientsHeading, this.matchedPatientCardButtons.first()],
+      [this.matchedPatientsHeading, this.page.locator("(//ul[contains(@class, 'overscroll-contain')]//button)[1]")],
       { state: BasePage.ElementState.VISIBLE },
       this.verifiedMatchedPatientsScreenLog
     );
   }
 
-  async verifyAppointmentConfirmationDisplayed() {
+  /** Asserts that the appointment confirmed screen is displayed. */
+  async verifyAppointmentConfirmationDisplayed(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.appointmentConfirmedHeading],
       { state: BasePage.ElementState.VISIBLE },
@@ -924,7 +1291,15 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
-  async verifyGlobalErrorMessageDisplayed(expectedMessage?: string) {
+  /**
+   * Asserts that a global form-level error message is visible, and optionally verifies its text.
+   *
+   * @param {string} [expectedMessage]
+   *        Optional.
+   *        Expected substring inside the error text.
+   * @returns {Promise<void>}
+   */
+  async verifyGlobalErrorMessageDisplayed(expectedMessage?: string): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.globalErrorMessage],
       { state: BasePage.ElementState.VISIBLE },
@@ -936,7 +1311,15 @@ export class AwhBookingPage extends BasePage {
     }
   }
 
-  async verifyModalErrorMessageDisplayed(expectedMessage?: string) {
+  /**
+   * Asserts that an error message inside the verification modal is visible.
+   *
+   * @param {string} [expectedMessage]
+   *        Optional.
+   *        Expected substring inside the error text.
+   * @returns {Promise<void>}
+   */
+  async verifyModalErrorMessageDisplayed(expectedMessage?: string): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.existingModalErrorMessage],
       { state: BasePage.ElementState.VISIBLE },
@@ -948,7 +1331,8 @@ export class AwhBookingPage extends BasePage {
     }
   }
 
-  async verifyDobValidationErrorDisplayed() {
+  /** Asserts that the Date of Birth field validation error hint is displayed. */
+  async verifyDobValidationErrorDisplayed(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.dobErrorHint],
       { state: BasePage.ElementState.VISIBLE },
@@ -956,7 +1340,8 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
-  async verifyPincodeValidationErrorDisplayed() {
+  /** Asserts that the Pincode field validation error hint is displayed. */
+  async verifyPincodeValidationErrorDisplayed(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.pincodeErrorHint],
       { state: BasePage.ElementState.VISIBLE },
@@ -964,7 +1349,8 @@ export class AwhBookingPage extends BasePage {
     );
   }
 
-  async verifyCityValidationErrorDisplayed() {
+  /** Asserts that the City field validation error hint is displayed. */
+  async verifyCityValidationErrorDisplayed(): Promise<void> {
     await super.waitForListOfElementsToBeVisibleOrHidden(
       [this.cityErrorHint],
       { state: BasePage.ElementState.VISIBLE },
@@ -975,41 +1361,54 @@ export class AwhBookingPage extends BasePage {
   // ==========================================================================
   // Getters for Strict "Actual vs Expected" Assertion Verifications
   // ==========================================================================
+
+  /** Returns the inner text of the global form error message banner. */
   async getGlobalErrorMessageText(): Promise<string> {
     await this.globalErrorMessage.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
     return (await this.globalErrorMessage.innerText().catch(() => '')).trim();
   }
 
+  /** Returns the inner text of the DOB field error hint. */
   async getDobErrorHintText(): Promise<string> {
     await this.dobErrorHint.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
     return (await this.dobErrorHint.innerText().catch(() => '')).trim();
   }
 
+  /** Returns the inner text of the Pincode field error hint. */
   async getPincodeErrorHintText(): Promise<string> {
     await this.pincodeErrorHint.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
     return (await this.pincodeErrorHint.innerText().catch(() => '')).trim();
   }
 
+  /** Returns the raw input value of the pincode field. */
   async getPincodeInputValue(): Promise<string> {
     return await this.pincodeInput.inputValue();
   }
 
+  /** Returns the inner text of the City field error hint. */
   async getCityErrorHintText(): Promise<string> {
     await this.cityErrorHint.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
     return (await this.cityErrorHint.innerText().catch(() => '')).trim();
   }
 
+  /** Returns the inner text of the appointment confirmed heading. */
   async getAppointmentConfirmationHeading(): Promise<string> {
     await this.appointmentConfirmedHeading.waitFor({ state: 'visible' });
     return (await this.appointmentConfirmedHeading.innerText()).trim();
   }
 
+  /** Returns the text of the specified upcoming appointment card. */
   async getUpcomingAppointmentCardText(index: number = 0): Promise<string> {
     const card = this.upcomingAppointmentCards.nth(index);
     await card.waitFor({ state: 'visible' });
     return (await card.innerText()).trim();
   }
 
+  /**
+   * Retrieves aggregated appointment confirmation details (heading, confirmation pill, first upcoming card text).
+   *
+   * @returns {Promise<{ confirmationHeading: string; confirmationPill: string; firstUpcomingCardText: string }>}
+   */
   async getAppointmentConfirmationDetails(): Promise<{
     confirmationHeading: string;
     confirmationPill: string;
@@ -1018,11 +1417,11 @@ export class AwhBookingPage extends BasePage {
     await this.appointmentConfirmedHeading.waitFor({ state: 'visible' });
     const heading = (await this.appointmentConfirmedHeading.innerText().catch(() => '')).trim();
     const pill = (await this.appointmentConfirmationPill.innerText().catch(() => '')).trim();
-    
-    const firstCard = this.upcomingAppointmentCards.first();
+
+    const firstCard = this.page.locator("(//ul//li[contains(@class, 'rounded-lg')])[1]");
     await firstCard.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     const card = (await firstCard.innerText().catch(() => '')).trim();
-    
+
     return {
       confirmationHeading: heading,
       confirmationPill: pill,
@@ -1030,26 +1429,26 @@ export class AwhBookingPage extends BasePage {
     };
   }
 
+  /** Returns the current value of the intake phone number input. */
   async getMobileInputValue(): Promise<string> {
     return await this.phoneInput.inputValue();
   }
 
+  /** Returns the current value of the full name input. */
   async getFullNameInputValue(): Promise<string> {
     return await this.fullNameInput.inputValue();
   }
 
+  /** Returns the inner text of the error message inside the verification modal. */
   async getModalErrorMessageText(): Promise<string> {
     await this.existingModalErrorMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     return (await this.existingModalErrorMessage.innerText()).trim();
   }
 
+  /** Returns the current value of the phone input in the existing patient verification modal. */
   async getExistingModalPhoneInputValue(): Promise<string> {
     return await this.existingModalPhoneInput.inputValue();
   }
 }
 
 export { AwhBookingPage as BookingPage };
-
-
-
-

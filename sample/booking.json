@@ -12,9 +12,9 @@
     "newPatient": {
       "primary": {
         "patientType": "new",
-        "doctor": "Dr. Ananya Sharma",
+        "doctor": "Dr.KVNN.Santhosh Murthy",
         "month": "September",
-        "appointmentDate": "29",
+        "appointmentDate": "30",
         "timeSlot": "first",
         "carePackage": "Basic",
         "personalDetails": {
@@ -30,7 +30,7 @@
       },
       "secondary": {
         "patientType": "new",
-        "doctor": "Dr. Rajesh Varma",
+        "doctor": "Dr.KVNN.Santhosh Murthy",
         "month": "September",
         "appointmentDate": "30",
         "timeSlot": "first",
@@ -42,31 +42,30 @@
           "pincode": "500001",
           "state": "Telangana",
           "city": "Hyderabad",
-          "phone": "",
+          "phone": "9876543210",
           "otp": "123456"
         }
       }
     },
     "reschedule": {
-      "newDoctor": "Dr. Rajesh Varma",
-      "newMonth": "September",
-      "newAppointmentDate": "30",
+      "newDoctor": "Dr.KVNN.Santhosh Murthy",
+      "newMonth": "October",
+      "newAppointmentDate": "1",
       "newTimeSlot": "first",
       "newCarePackage": "Advanced"
     },
     "existingPatient": {
-      "registeredPhone": "9998887776",
+      "registeredPhone": "9390406658",
       "registered": {
-        "phone": "9998887776",
-        
+        "phone": "9390406658",
         "alternatePhone": "9876543210",
         "otp": "123456",
         "patientSelection": 0,
         "secondPatientSelection": 1,
-        "doctor": "Dr. Ananya Sharma",
+        "doctor": "Dr.KVNN.Santhosh Murthy",
         "month": "September",
-        "appointmentDate": "29",
-        "timeSlot": "12:30 PM",
+        "appointmentDate": "30",
+        "timeSlot": "first",
         "carePackage": "Basic"
       },
       "unregistered": {
@@ -78,9 +77,9 @@
         "otp": "000000"
       },
       "reschedule": {
-        "newDoctor": "Dr. Rajesh Varma",
-        "newMonth": "September",
-        "newAppointmentDate": "29",
+        "newDoctor": "Dr.KVNN.Santhosh Murthy",
+        "newMonth": "October",
+        "newAppointmentDate": "1",
         "newTimeSlot": "first",
         "newCarePackage": "Advanced"
       },
@@ -112,10 +111,7 @@
       "platinum": "Premium"
     },
     "doctors": [
-      "Dr. Ananya Sharma",
-      "Dr. Rajesh Varma",
-      "Dr. Sneha Patil",
-      "Dr. Vikram Malhotra"
+      "Dr.KVNN.Santhosh Murthy"
     ],
     "boundaries": {
       "name": {

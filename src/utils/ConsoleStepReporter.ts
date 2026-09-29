@@ -1,20 +1,83 @@
-import { Reporter, TestCase, TestResult, TestStep } from '@playwright/test/reporter';
+/**
+ * @file ConsoleStepReporter.ts
+ * @description
+ * Custom Playwright Console Step and Diagnostic Defect Reporter.
+ *
+ * Responsibilities:
+ * - Intercept Playwright lifecycle events (`onStepBegin`, `onStepEnd`, `onTestEnd`)
+ * - Format realtime test execution steps with clear terminal indicators (▶, ✅, ❌) and step execution durations
+ * - Analyze failed tests and classify the root cause into categories (Script Maintenance, User Input Guardrail, Product Bug)
+ * - Automatically generate copy-pasteable JIRA defect summaries in console output upon test failure
+ *
+ * Major Exports:
+ * - default ConsoleStepReporter: Playwright Reporter implementation class
+ *
+ * Dependencies:
+ * - @playwright/test/reporter: Reporter, TestCase, TestResult, TestStep
+ *
+ * Assumptions:
+ * - Test cases utilize `test.step()` for structured step demarcation
+ *
+ * Side Effects:
+ * - Writes formatted text directly to stdout and stderr via `console.log` / `console.error`
+ *
+ * Usage Considerations:
+ * - Configured in `playwright.config.ts` under the `reporter` array.
+ */
+
+import { FullResult, Reporter, TestCase, TestResult, TestStep } from '@playwright/test/reporter';
 
 /**
- * Utility: Custom Playwright Reporter for CI/CLI output.
- * Hooks into Playwright's test lifecycle (onStepBegin, onStepEnd, onTestEnd).
- * Provides clean, step-by-step console execution logs and intercepts test failures
- * to output a detailed "Diagnostic Verdict" to help QA quickly identify if a failure
- * was a script issue, a network issue, or a genuine application defect.
+ * Custom Playwright Reporter implementation providing real-time console step feedback
+ * and automated failure diagnosis for CI/CD environments.
+ *
+ * @class ConsoleStepReporter
+ * @implements {Reporter}
  */
 export default class ConsoleStepReporter implements Reporter {
-  onStepBegin(test: TestCase, result: TestResult, step: TestStep) {
+  /**
+   * Called when a test step begins execution.
+   *
+   * Filters specifically for user-defined `test.step()` boundaries (category: 'test.step')
+   * to print a clean start marker.
+   *
+   * @param {TestCase} test
+   *        Required.
+   *        The test case currently executing.
+   *
+   * @param {TestResult} result
+   *        Required.
+   *        The current execution result tracking this test run.
+   *
+   * @param {TestStep} step
+   *        Required.
+   *        The step that has just started.
+   */
+  onStepBegin(test: TestCase, result: TestResult, step: TestStep): void {
     if (step.category === 'test.step') {
       console.log(`\n▶ [${test.title}] STEP: ${step.title}`);
     }
   }
 
-  onStepEnd(test: TestCase, result: TestResult, step: TestStep) {
+  /**
+   * Called when a test step completes execution.
+   *
+   * Logs a green checkmark (`✅`) with execution duration if passed,
+   * or a red cross (`❌`) with the step error message if failed.
+   *
+   * @param {TestCase} test
+   *        Required.
+   *        The parent test case.
+   *
+   * @param {TestResult} result
+   *        Required.
+   *        The current test result accumulator.
+   *
+   * @param {TestStep} step
+   *        Required.
+   *        The step that just completed.
+   */
+  onStepEnd(test: TestCase, result: TestResult, step: TestStep): void {
     if (step.category === 'test.step') {
       if (step.error) {
         console.error(`  ❌ FAILED STEP: ${step.title} (${step.duration}ms)`);
@@ -27,7 +90,28 @@ export default class ConsoleStepReporter implements Reporter {
     }
   }
 
-  onTestEnd(test: TestCase, result: TestResult) {
+  /**
+   * Called when a test finishes execution.
+   *
+   * If the test failed or timed out, parses the step execution trace, classifies
+   * the failure reason, and renders a structured JIRA Defect Report to stderr.
+   *
+   * Classification Logic:
+   * - LocatorError / strict mode: "Script Maintenance"
+   * - TimeoutError: "Script Maintenance"
+   * - Stale / DetachedElementError: "Script Maintenance"
+   * - Validation Failure / duplicate contact: "User Input Validation (Expected Guardrail)"
+   * - All other assertion failures: "Bug"
+   *
+   * @param {TestCase} test
+   *        Required.
+   *        The test case that finished.
+   *
+   * @param {TestResult} result
+   *        Required.
+   *        The final test result containing status, duration, error details, and step traces.
+   */
+  onTestEnd(test: TestCase, result: TestResult): void {
     if (result.status === 'failed' || result.status === 'timedOut') {
       const errorMsg = result.error?.message || 'No error message provided';
       const stack = result.error?.stack || '';
@@ -101,6 +185,24 @@ export default class ConsoleStepReporter implements Reporter {
       console.error(`\nExact Error Details:`);
       console.error(errorMsg.split('\n')[0]); // First line of error
       console.error(`================================================================================\n`);
+    }
+  }
+
+  /**
+   * Called when all test suites have completed execution.
+   * If email reporting is enabled via `SEND_EMAIL_REPORT=true`, automatically compiles
+   * and dispatches the executive HTML email notification to configured recipients.
+   *
+   * @param {FullResult} result - Final test execution status result.
+   */
+  async onEnd(result: FullResult): Promise<void> {
+    if (process.env.SEND_EMAIL_REPORT === 'true') {
+      try {
+        const { sendEmailReport } = require('../../scripts/send-email-report');
+        await sendEmailReport();
+      } catch (err: any) {
+        console.error('⚠️ [EmailReporter] Failed to trigger email report on test completion:', err?.message || err);
+      }
     }
   }
 }

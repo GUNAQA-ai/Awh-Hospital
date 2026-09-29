@@ -11,10 +11,12 @@
     "report:html": "playwright show-report",
     "report:generate": "node scripts/save-history.js && allure generate allure-results --clean -o allure-report && node scripts/send-email-report.js",
     "report:open": "allure open allure-report",
-    "report:allure": "npm run report:generate && npm run report:open"
+    "report:allure": "npm run report:generate && npm run report:open",
+    "email:send": "node scripts/send-email-report.js"
   },
   "dependencies": {
     "@playwright/test": "^1.20.0",
+    "docx": "^9.8.1",
     "dotenv": "^17.4.2",
     "nodemailer": "^9.0.4",
     "winston": "^3.19.0",

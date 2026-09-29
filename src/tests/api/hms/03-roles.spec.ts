@@ -1,13 +1,50 @@
+/**
+ * @file 03-roles.spec.ts
+ * @description
+ * Automated API test suite verifying Role-Based Access Control (RBAC) role management endpoints in HMS Core API.
+ * Validates role collection querying, unauthenticated access prevention, single-role retrieval,
+ * 404 Not Found handling for invalid IDs, and role permission queries.
+ *
+ * Test Suite Scope:
+ * - TC-API-ROLES-001: List all organizational roles with valid authentication token (`GET /api/v1/roles`).
+ * - TC-API-ROLES-002: Ensure unauthenticated requests are blocked with HTTP 401 Unauthorized.
+ * - TC-API-ROLES-003: Retrieve a specific role by valid UUID (`GET /api/v1/roles/{id}`).
+ * - TC-API-ROLES-004: Validate 404 Not Found response when querying non-existent role UUID.
+ * - TC-API-ROLES-005: Retrieve permission sets associated with a specific role (`GET /api/v1/roles/{id}/permissions`).
+ *
+ * Preconditions:
+ * - HMS Core API service running and accessible on port 3000.
+ * - Authenticated admin session initialized via `AuthHelper.login()` in `beforeAll`.
+ *
+ * Test Data:
+ * - Dynamic data flow: Fetches existing role UUIDs from live API list query for lookup assertions.
+ * - Nil-UUID (`00000000-0000-0000-0000-000000000000`) used for negative tests.
+ *
+ * Required Environment:
+ * - Configured via `API_BASE_URL` (default: `http://13.205.179.0:3000`).
+ *
+ * Steps / Flow:
+ * 1. Authenticate in beforeAll hook.
+ * 2. Send GET request with/without Authorization Bearer header.
+ * 3. Validate status code and response payload shape.
+ *
+ * Cleanup Requirements:
+ * - None. All test scenarios are read-only queries.
+ *
+ * Dependencies:
+ * - `ApiClient`, `AuthHelper`, `HMS`, `ResponseValidator`
+ *
+ * Tags:
+ * - `@api`, `@rbac`, `@roles`, `@security`
+ */
+
 import { test, expect } from '../../../fixtures/testFixtures';
 import { AuthHelper } from '../../../api/core/AuthHelper';
 import { HMS } from '../../../api/endpoints/HmsEndpoints';
 import { ResponseValidator } from '../../../api/core/ResponseValidator';
 import { allure } from 'allure-playwright';
 
-/**
- * HMS Core API — Roles
- * Swagger: http://13.205.179.0:3000/api/docs#/Roles
- */
+/** Base URL for the HMS Core API service */
 const BASE_URL = process.env.API_BASE_URL || 'http://13.205.179.0:3000';
 
 test.describe('HMS Core API — Roles', () => {
@@ -21,7 +58,9 @@ test.describe('HMS Core API — Roles', () => {
     allure.feature('Roles');
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Roles/RolesController_list
+  /**
+   * TC-API-ROLES-001: Lists all roles with valid JWT authentication.
+   */
   test('TC-API-ROLES-001 GET /api/v1/roles — List all roles (authenticated)', async ({ apiClient }) => {
     allure.story('List Roles');
     allure.severity('critical');
@@ -42,7 +81,9 @@ test.describe('HMS Core API — Roles', () => {
     });
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Roles/RolesController_list
+  /**
+   * TC-API-ROLES-002: Verifies that requests without authentication token return HTTP 401.
+   */
   test('TC-API-ROLES-002 GET /api/v1/roles — Verify 401 without auth token', async ({ apiClient }) => {
     allure.story('Authorization Guard');
     allure.severity('critical');
@@ -56,7 +97,9 @@ test.describe('HMS Core API — Roles', () => {
     });
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Roles/RolesController_getById
+  /**
+   * TC-API-ROLES-003: Fetches a single role by its unique identifier.
+   */
   test('TC-API-ROLES-003 GET /api/v1/roles/{id} — Get role by valid ID', async ({ apiClient }) => {
     allure.story('Get Role by ID');
     allure.severity('normal');
@@ -85,7 +128,9 @@ test.describe('HMS Core API — Roles', () => {
     });
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Roles/RolesController_getById
+  /**
+   * TC-API-ROLES-004: Verifies querying a non-existent role ID returns HTTP 404.
+   */
   test('TC-API-ROLES-004 GET /api/v1/roles/{id} — Invalid ID returns 404', async ({ apiClient }) => {
     allure.story('Get Role - Negative');
     allure.severity('normal');
@@ -102,7 +147,9 @@ test.describe('HMS Core API — Roles', () => {
     });
   });
 
-  // Docs: http://13.205.179.0:3000/api/docs#/Roles/RolesController_listPermissions
+  /**
+   * TC-API-ROLES-005: Lists all permissions mapped to a specific role.
+   */
   test('TC-API-ROLES-005 GET /api/v1/roles/{id}/permissions — List permissions for a role', async ({ apiClient }) => {
     allure.story('Role Permissions');
     allure.severity('normal');
@@ -130,6 +177,3 @@ test.describe('HMS Core API — Roles', () => {
     });
   });
 });
-
-
-

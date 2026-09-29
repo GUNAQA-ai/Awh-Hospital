@@ -1,3 +1,13 @@
+# ==============================================================================
+# GitLab CI/CD Pipeline Configuration
+# Project: AWH Hospital Test Automation
+# Description: Automated multi-stage pipeline executing Playwright test suites,
+#              compiling historical Allure reports, and dispatching summary emails.
+# Stages:
+#   - test:   Executes Playwright tests within official Microsoft container.
+#   - report: Preserves execution history, generates Allure HTML report, and sends email.
+# ==============================================================================
+
 image: mcr.microsoft.com/playwright:v1.56.0-noble
 
 stages:
