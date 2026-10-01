@@ -550,6 +550,68 @@ export abstract class BasePage {
   }
 
   /**
+   * Checks whether the specified element is currently visible in the DOM.
+   *
+   * @param {Locator | string} locator - Target element locator or string selector.
+   * @returns {Promise<boolean>} True if visible; otherwise false.
+   */
+  protected async isElementVisible(locator: Locator | string): Promise<boolean> {
+    return await this.resolveLocator(locator).isVisible().catch(() => false);
+  }
+
+  /**
+   * Checks whether the specified element is currently enabled and interactive.
+   *
+   * @param {Locator | string} locator - Target element locator or string selector.
+   * @returns {Promise<boolean>} True if enabled; otherwise false.
+   */
+  protected async isElementEnabled(locator: Locator | string): Promise<boolean> {
+    return await this.resolveLocator(locator).isEnabled().catch(() => false);
+  }
+
+  /**
+   * Waits for a specific element to reach visible state with custom or default timeout.
+   *
+   * @param {Locator | string} locator - Target element locator.
+   * @param {number} [timeout=8000] - Maximum duration to wait in milliseconds.
+   * @param {string} [logMessage] - Step log title.
+   * @returns {Promise<void>}
+   */
+  protected async waitForElementToBeVisible(locator: Locator | string, timeout: number = 8000, logMessage?: string): Promise<void> {
+    const stepTitle = logMessage || "Waiting for element to be visible";
+    await test.step(stepTitle, async () => {
+      this.logStep(stepTitle);
+      try {
+        await this.resolveLocator(locator).waitFor({ state: 'visible', timeout });
+      } catch (error: any) {
+        console.error(`❌ FAILED VISIBILITY WAIT [${stepTitle}]: ${error.message}`);
+        throw mapPlaywrightError(error, stepTitle);
+      }
+    });
+  }
+
+  /**
+   * Waits for a specific element to reach hidden or detached state.
+   *
+   * @param {Locator | string} locator - Target element locator.
+   * @param {number} [timeout=8000] - Maximum duration to wait in milliseconds.
+   * @param {string} [logMessage] - Step log title.
+   * @returns {Promise<void>}
+   */
+  protected async waitForElementToBeHidden(locator: Locator | string, timeout: number = 8000, logMessage?: string): Promise<void> {
+    const stepTitle = logMessage || "Waiting for element to be hidden";
+    await test.step(stepTitle, async () => {
+      this.logStep(stepTitle);
+      try {
+        await this.resolveLocator(locator).waitFor({ state: 'hidden', timeout });
+      } catch (error: any) {
+        console.error(`❌ FAILED HIDDEN WAIT [${stepTitle}]: ${error.message}`);
+        throw mapPlaywrightError(error, stepTitle);
+      }
+    });
+  }
+
+  /**
    * Verifies that each element in a given list matches the desired visibility state ('visible' or 'hidden').
    * Relies on standard Playwright expect assertion timeouts.
    *
@@ -1235,7 +1297,7 @@ export abstract class BasePage {
         const targetMonthShort = targetMonth ? targetMonth.substring(0, 3) : '';
         if (targetMonth) {
           for (let i = 0; i < 8; i++) {
-            const currentRange = (await header.innerText()).trim().toLowerCase();
+            const currentRange = (await header.innerText().catch(() => '')).trim().toLowerCase();
             if (currentRange.includes(targetMonth) || (targetMonthShort && currentRange.includes(targetMonthShort))) {
               break;
             }

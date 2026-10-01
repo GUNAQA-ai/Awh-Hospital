@@ -59,9 +59,12 @@ const isCI = !!(process.env.CI || process.env.GITHUB_ACTIONS || process.env.JENK
 export default defineConfig({
   /** Directory containing all test specifications (excludes page objects and utilities) */
   testDir: './src/tests',
+
+  /** Global Teardown hook to reliably trigger email notifications after all reporters flush */
+  globalTeardown: './src/utils/globalTeardown.ts',
   
-  /** Maximum duration permitted for an individual test execution in milliseconds (90 seconds) */
-  timeout: 90000,
+  /** Maximum duration permitted for an individual test execution in milliseconds (35 seconds) */
+  timeout: 35000,
   
   /** Disables parallel execution of tests within the same file to guarantee sequential stability */
   fullyParallel: false, 
@@ -75,7 +78,7 @@ export default defineConfig({
   /** Configuration for Playwright's `expect` assertion library */
   expect: {
     /** Timeout in milliseconds for dynamic assertions (e.g. toBeVisible, toHaveText) */
-    timeout: 10000
+    timeout: 8000
   },
   
   /** Array of active test result reporters */
@@ -93,19 +96,19 @@ export default defineConfig({
     baseURL: config.baseURL,
 
     /** Default timeout for individual Playwright actions (click, fill) in milliseconds */
-    actionTimeout: 15000,
+    actionTimeout: 6000,
 
     /** Default timeout for page navigation calls (goto, waitForURL) in milliseconds */
-    navigationTimeout: 45000,
+    navigationTimeout: 15000,
     
-    /** Records execution traces for test runs to assist in post-mortem debugging */
-    trace: 'on',
+    /** Records execution traces only on failures to maximize performance */
+    trace: 'retain-on-failure',
     
-    /** Captures full screenshots at the conclusion of every test */
-    screenshot: 'on',
+    /** Captures screenshots only when a test fails */
+    screenshot: 'only-on-failure',
     
-    /** Records full video recordings of the browser session */
-    video: 'on',
+    /** Records video only when a test fails */
+    video: 'retain-on-failure',
     
     // In CI environments, rely on bundled Chromium; locally, prefer system Google Chrome
     ...(isCI ? {} : { channel: 'chrome' }),

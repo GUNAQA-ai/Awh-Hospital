@@ -1,0 +1,103 @@
+Scenario,PatientType,FullName,Email,DOB,Gender,State,City,Pincode,MobileNumber,OTP,Doctor,Month,AppointmentDate,TimeSlot,CarePackage
+SM-001,new,Guna Sekhar,guna.sm001@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210001,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+SM-002,new,Ramesh Kumar,ramesh.sm002@example.com,1992-08-20,Male,Telangana,Hyderabad,500001,9849210002,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+SM-003,new,Sita Lakshmi,sita.sm003@example.com,1994-03-10,Female,Andhra Pradesh,Tirupati,517541,9849210003,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+SM-004,new,Guna Sekhar,guna.sm004@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210004,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+SM-005,existing,Guna Existing,guna.sm005@example.com,1990-01-01,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+NP-001,new,Naveen Kumar,naveen.np001@example.com,1992-01-10,Male,Andhra Pradesh,Tirupati,517541,9849210006,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+NP-002,new,Haritha P,haritha.np002@example.com,1994-02-14,Female,Telangana,Hyderabad,500001,9849210007,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+NP-003,new,Guna Sekhar,guna.np003@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210008,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+NP-004,new,Guna Sekhar,guna.np004@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210009,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+NP-005,new,Guna Sekhar,guna.np005@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210010,123456,Dr.KVNN.Santhosh Murthy,October,9,first,Platinum
+DOC-001,new,Arun Prakash,arun.doc01@example.com,1991-03-12,Male,Andhra Pradesh,Tirupati,517541,9849210011,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+DOC-002,new,Kavita Nair,kavita.doc02@example.com,1990-09-22,Female,Telangana,Hyderabad,500001,9849210012,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+DOC-003,new,Manoj Kumar,manoj.doc03@example.com,1987-11-19,Male,Andhra Pradesh,Tirupati,517541,9849210013,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+DOC-004,new,Swathi Rao,swathi.doc04@example.com,1995-06-11,Female,Telangana,Hyderabad,500001,9849210014,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+TIER-001,new,Rohan Verma,rohan.tier01@example.com,1993-02-18,Male,Andhra Pradesh,Tirupati,517541,9849210015,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Silver
+TIER-002,new,Anjali Sen,anjali.tier02@example.com,1994-08-25,Female,Telangana,Hyderabad,500001,9849210016,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+TIER-003,new,Rajesh Nair,rajesh.tier03@example.com,1989-10-14,Male,Andhra Pradesh,Tirupati,517541,9849210017,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+TIER-004,new,Free Patient,free01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210018,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Silver
+DT-001,new,Divya Balan,divya.dt01@example.com,1992-05-12,Female,Andhra Pradesh,Tirupati,517541,9849210019,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+DT-002,new,Kiran Kumar,kiran.dt02@example.com,1991-09-30,Male,Telangana,Hyderabad,500001,9849210020,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+DT-003,new,Suresh Reddy,suresh.dt03@example.com,1988-04-18,Male,Andhra Pradesh,Tirupati,517541,9849210021,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+DT-004,new,Meena Iyer,meena.dt04@example.com,1996-12-01,Female,Telangana,Hyderabad,500001,9849210022,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+E2E-NP-001,new,Guna Silver,guna.e2e01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210023,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Silver
+E2E-NP-002,new,Priya Gold,priya.e2e02@example.com,1990-05-20,Female,Telangana,Hyderabad,500001,9849210024,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+E2E-NP-003,new,Guna Platinum,guna.e2e03@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210025,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+E2E-NP-004,new,Vijay Kumar,vijay.e2e04@example.com,1993-07-22,Male,Andhra Pradesh,Tirupati,517541,9849210026,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+EP-001,existing,Guna Existing,guna.ep01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+EP-002,existing,Guna Existing,guna.ep02@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+EP-003,existing,Guna Existing,guna.ep03@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+EP-004,existing,Guna Existing,guna.ep04@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Gold
+RES-001,new,Guna Reschedule,guna.res01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210027,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+CAN-001,new,Guna Cancel,guna.can01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210028,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+CAN-002,new,Guna Cancel,guna.can02@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210029,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+LIFE-001,new,Guna Lifecycle,guna.life01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210030,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+CONF-001,new,Guna Sekhar,guna.conf01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210031,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+CONF-002,new,Priya Sharma,priya.conf02@example.com,1990-05-20,Female,Telangana,Hyderabad,500001,9849210032,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+CONF-003,new,Guna Sekhar,guna.conf03@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210033,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+NEG-001,new,Invalid Patient,invalid@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210034,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+NEG-002,new,Invalid Patient,invalid@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210035,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+NEG-003,new,Invalid Patient,invalid@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210036,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+NEG-004,new,Valid Recovery,recovery@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210037,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+NAV-001,new,Nav Patient,nav@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210038,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+NAV-002,new,Nav Patient,nav@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210039,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+NAV-003,new,Nav Patient,nav@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210040,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+CON-001,new,Con Patient,con@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210041,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+CON-002,new,Con Patient,con@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210042,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+DB-001,existing,Guna Existing,guna.db01@example.com,1990-01-01,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+REG-001,new,Reg Patient,reg@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210043,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+REG-002,new,Reg Patient,reg@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210044,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+BND-001,new,Bnd Patient,bnd@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210045,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+BND-002,new,Bnd Patient,bnd@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210046,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+NewPatient_Primary,new,guna,puttugunasekhar04@gmail.com,2026-09-16,Male,Andhra Pradesh,Tirupati,517541,9849210047,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+NewPatient_Secondary,new,Priya Sharma,priya.sharma@example.com,1990-05-20,Female,Telangana,Hyderabad,500001,9849210048,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+ExistingPatient_Primary,existing,guna,puttugunasekhar04@gmail.com,2026-09-16,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+Reschedule_Scenario,reschedule,guna,puttugunasekhar04@gmail.com,2026-09-16,Male,Andhra Pradesh,Tirupati,517541,9849210049,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+WA-001,new,WhatsApp Patient,wa01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210050,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+WA-002,new,WhatsApp Query,wa02@example.com,1992-08-20,Male,Telangana,Hyderabad,500001,9849210051,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+CHAT-001,new,Chatbot Patient,chat01@example.com,1994-03-10,Female,Andhra Pradesh,Tirupati,517541,9849210052,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+CHAT-002,new,Chatbot Query,chat02@example.com,1990-01-01,Male,Andhra Pradesh,Tirupati,517541,9849210053,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+TIER-003,new,Rajesh Nair,rajesh.tier03@example.com,1989-10-14,Male,Andhra Pradesh,Tirupati,517541,9849210017,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+TIER-004,new,Free Patient,free01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210018,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Silver
+DT-001,new,Divya Balan,divya.dt01@example.com,1992-05-12,Female,Andhra Pradesh,Tirupati,517541,9849210019,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+DT-002,new,Kiran Kumar,kiran.dt02@example.com,1991-09-30,Male,Telangana,Hyderabad,500001,9849210020,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+DT-003,new,Suresh Reddy,suresh.dt03@example.com,1988-04-18,Male,Andhra Pradesh,Tirupati,517541,9849210021,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+DT-004,new,Meena Iyer,meena.dt04@example.com,1996-12-01,Female,Telangana,Hyderabad,500001,9849210022,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+E2E-NP-001,new,Guna Silver,guna.e2e01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210023,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Silver
+E2E-NP-002,new,Priya Gold,priya.e2e02@example.com,1990-05-20,Female,Telangana,Hyderabad,500001,9849210024,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+E2E-NP-003,new,Guna Platinum,guna.e2e03@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210025,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+E2E-NP-004,new,Vijay Kumar,vijay.e2e04@example.com,1993-07-22,Male,Andhra Pradesh,Tirupati,517541,9849210026,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+EP-001,existing,Guna Existing,guna.ep01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+EP-002,existing,Guna Existing,guna.ep02@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+EP-003,existing,Guna Existing,guna.ep03@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+EP-004,existing,Guna Existing,guna.ep04@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Gold
+RES-001,new,Guna Reschedule,guna.res01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210027,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+CAN-001,new,Guna Cancel,guna.can01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210028,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+CAN-002,new,Guna Cancel,guna.can02@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210029,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+LIFE-001,new,Guna Lifecycle,guna.life01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210030,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+CONF-001,new,Guna Sekhar,guna.conf01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210031,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+CONF-002,new,Priya Sharma,priya.conf02@example.com,1990-05-20,Female,Telangana,Hyderabad,500001,9849210032,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+CONF-003,new,Guna Sekhar,guna.conf03@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210033,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+NEG-001,new,Invalid Patient,invalid@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210034,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+NEG-002,new,Invalid Patient,invalid@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210035,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+NEG-003,new,Invalid Patient,invalid@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210036,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+NEG-004,new,Valid Recovery,recovery@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210037,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum
+NAV-001,new,Nav Patient,nav@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210038,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+NAV-002,new,Nav Patient,nav@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210039,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+NAV-003,new,Nav Patient,nav@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210040,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Platinum
+CON-001,new,Con Patient,con@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210041,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+CON-002,new,Con Patient,con@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210042,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+DB-001,existing,Guna Existing,guna.db01@example.com,1990-01-01,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+REG-001,new,Reg Patient,reg@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210043,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+REG-002,new,Reg Patient,reg@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210044,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+BND-001,new,Bnd Patient,bnd@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210045,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+BND-002,new,Bnd Patient,bnd@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210046,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Platinum
+NewPatient_Primary,new,guna,puttugunasekhar04@gmail.com,2026-09-16,Male,Andhra Pradesh,Tirupati,517541,9849210047,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+NewPatient_Secondary,new,Priya Sharma,priya.sharma@example.com,1990-05-20,Female,Telangana,Hyderabad,500001,9849210048,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+ExistingPatient_Primary,existing,guna,puttugunasekhar04@gmail.com,2026-09-16,Male,Andhra Pradesh,Tirupati,517541,9390406658,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+Reschedule_Scenario,reschedule,guna,puttugunasekhar04@gmail.com,2026-09-16,Male,Andhra Pradesh,Tirupati,517541,9849210049,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+WA-001,new,WhatsApp Patient,wa01@example.com,1995-05-15,Male,Andhra Pradesh,Tirupati,517541,9849210050,123456,Dr.KVNN.Santhosh Murthy,October,5,first,Platinum
+WA-002,new,WhatsApp Query,wa02@example.com,1992-08-20,Male,Telangana,Hyderabad,500001,9849210051,123456,Dr.KVNN.Santhosh Murthy,October,6,first,Gold
+CHAT-001,new,Chatbot Patient,chat01@example.com,1994-03-10,Female,Andhra Pradesh,Tirupati,517541,9849210052,123456,Dr.KVNN.Santhosh Murthy,October,7,first,Silver
+CHAT-002,new,Chatbot Query,chat02@example.com,1990-01-01,Male,Andhra Pradesh,Tirupati,517541,9849210053,123456,Dr.KVNN.Santhosh Murthy,October,8,first,Platinum

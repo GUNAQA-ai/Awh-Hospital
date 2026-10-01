@@ -273,7 +273,7 @@ function parseTestResults(pwData) {
  * @returns {Promise<Buffer>} Generated .docx buffer.
  */
 async function generateWordDefectDocument(stats, testList, defects) {
-  const buildName = process.env.BUILD_NUMBER ? `Build ${process.env.BUILD_NUMBER}` : 'Build 3';
+  const buildName = process.env.BUILD_NAME || (process.env.BUILD_NUMBER ? `Build ${process.env.BUILD_NUMBER}` : 'Build 4');
   const reportDateStr = formatReportDate(new Date());
 
   const docChildren = [];
@@ -918,7 +918,7 @@ function buildHtmlEmail(stats, testList, defects) {
               <table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="#8EA9DB" style="border-collapse: collapse; font-size: 13px; margin-bottom: 16px;">
                 <tr>
                   <td width="30%" bgcolor="#D9E1F2" style="background-color: #D9E1F2; padding: 8px 12px; font-weight: bold; color: #1E293B;">Build</td>
-                  <td style="padding: 8px 12px; color: #1E293B;">${process.env.BUILD_NUMBER ? `Build ${process.env.BUILD_NUMBER}` : 'Build 3'}</td>
+                  <td style="padding: 8px 12px; color: #1E293B;">${process.env.BUILD_NAME || (process.env.BUILD_NUMBER ? `Build ${process.env.BUILD_NUMBER}` : 'Build 4')}</td>
                 </tr>
                 <tr>
                   <td bgcolor="#D9E1F2" style="background-color: #D9E1F2; padding: 8px 12px; font-weight: bold; color: #1E293B;">Module</td>
@@ -1212,9 +1212,11 @@ async function sendEmailReport() {
 
   // Generate Microsoft Word (.docx) Defect Document matching the exact user template
   let wordDocBuffer = null;
+  const buildName = process.env.BUILD_NAME || (process.env.BUILD_NUMBER ? `Build ${process.env.BUILD_NUMBER}` : 'Build 4');
+  const docxFileName = `${buildName.replace(/\s+/g, '_')}_Booking.docx`;
   try {
     wordDocBuffer = await generateWordDefectDocument(stats, testList, defects);
-    const localDocxPath = path.join(__dirname, '..', 'Build3_Booking.docx');
+    const localDocxPath = path.join(__dirname, '..', docxFileName);
     fs.writeFileSync(localDocxPath, wordDocBuffer);
     console.log(`📄 Generated Corporate Microsoft Word Defect Document (${localDocxPath}).`);
   } catch (docErr) {
@@ -1223,29 +1225,36 @@ async function sendEmailReport() {
 
   // Initialize Nodemailer SMTP Transporter
   const port = parseInt(process.env.SMTP_PORT || '465', 10);
+  const cleanPass = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
+  const toRecipients = (process.env.EMAIL_TO || '')
+    .split(',')
+    .map(e => e.trim())
+    .filter(e => e.length > 0)
+    .join(', ');
+
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: port,
     secure: process.env.SMTP_SECURE === 'true' || port === 465,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
+      user: (process.env.SMTP_USER || '').trim(),
+      pass: cleanPass
     }
   });
 
   const subjectStatus = stats.failed === 0 ? `✅ ALL PASSED (${stats.passed}/${stats.total})` : `⚠️ ${stats.failed} FAILED (${stats.passed}/${stats.total} Passed)`;
   const mailOptions = {
-    from: `"AWH Hospital Automation" <${process.env.SMTP_USER}>`,
-    to: process.env.EMAIL_TO,
-    subject: `[${(process.env.ENV || 'UAT').toUpperCase()}] ${subjectStatus} - AWH Hospital Test Execution Report`,
+    from: `"AWH Hospital Automation" <${(process.env.SMTP_USER || '').trim()}>`,
+    to: toRecipients,
+    subject: `[${(process.env.ENV || 'UAT').toUpperCase()}] [${buildName}] ${subjectStatus} - AWH Hospital Test Execution Report`,
     html: htmlBody,
     attachments: []
   };
 
-  // Attach Microsoft Word (.docx) document (named Build3_Booking.docx to match exact standard)
+  // Attach Microsoft Word (.docx) document
   if (wordDocBuffer) {
     mailOptions.attachments.push({
-      filename: 'Build3_Booking.docx',
+      filename: docxFileName,
       content: wordDocBuffer,
       contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     });
@@ -1273,7 +1282,7 @@ async function sendEmailReport() {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Executive Email report with Word Doc (Build3_Booking.docx) & Screenshots sent successfully to ${mailOptions.to}!`);
+    console.log(`✅ Executive Email report with Word Doc (${docxFileName}) & Screenshots sent successfully to ${mailOptions.to}!`);
     console.log(`   Message ID: ${info.messageId}`);
     console.log(`   Summary: Total=${stats.total}, Passed=${stats.passed}, Failed=${stats.failed}, Skipped=${stats.skipped} (${passRate}% Pass Rate)`);
     return true;

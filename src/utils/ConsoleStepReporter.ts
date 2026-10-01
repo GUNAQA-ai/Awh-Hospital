@@ -190,19 +190,10 @@ export default class ConsoleStepReporter implements Reporter {
 
   /**
    * Called when all test suites have completed execution.
-   * If email reporting is enabled via `SEND_EMAIL_REPORT=true`, automatically compiles
-   * and dispatches the executive HTML email notification to configured recipients.
    *
    * @param {FullResult} result - Final test execution status result.
    */
   async onEnd(result: FullResult): Promise<void> {
-    if (process.env.SEND_EMAIL_REPORT === 'true') {
-      try {
-        const { sendEmailReport } = require('../../scripts/send-email-report');
-        await sendEmailReport();
-      } catch (err: any) {
-        console.error('⚠️ [EmailReporter] Failed to trigger email report on test completion:', err?.message || err);
-      }
-    }
+    console.log(`\n🏁 Test Execution Completed with status: ${result.status.toUpperCase()}`);
   }
 }

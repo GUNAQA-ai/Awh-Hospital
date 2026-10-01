@@ -13,36 +13,38 @@
       "primary": {
         "patientType": "new",
         "doctor": "Dr.KVNN.Santhosh Murthy",
-        "month": "September",
-        "appointmentDate": "30",
+        "month": "October",
+        "appointmentDate": "5",
         "timeSlot": "first",
-        "carePackage": "Basic",
+        "carePackage": "Platinum",
         "personalDetails": {
-          "fullName": "Gunasekher",
-          "dob": "1995-08-15",
+          "fullName": "guna",
+          "email": "puttugunasekhar04@gmail.com",
+          "dob": "2026-09-16",
           "gender": "Male",
-          "pincode": "520001",
+          "pincode": "517541",
           "state": "Andhra Pradesh",
-          "city": "Vijayawada",
-          "phone": "9998887776",
+          "city": "Tirupati",
+          "phone": "9849210001",
           "otp": "123456"
         }
       },
       "secondary": {
         "patientType": "new",
         "doctor": "Dr.KVNN.Santhosh Murthy",
-        "month": "September",
-        "appointmentDate": "30",
+        "month": "October",
+        "appointmentDate": "6",
         "timeSlot": "first",
-        "carePackage": "Advanced",
+        "carePackage": "Gold",
         "personalDetails": {
           "fullName": "Priya Sharma",
+          "email": "priya.sharma@example.com",
           "dob": "1990-05-20",
           "gender": "Female",
           "pincode": "500001",
           "state": "Telangana",
           "city": "Hyderabad",
-          "phone": "9876543210",
+          "phone": "9849210002",
           "otp": "123456"
         }
       }
@@ -66,14 +68,14 @@
         "month": "September",
         "appointmentDate": "30",
         "timeSlot": "first",
-        "carePackage": "Basic"
+        "carePackage": "Silver"
       },
       "unregistered": {
         "phone": "9999999999",
         "otp": "123456"
       },
       "invalidOtp": {
-        "phone": "9848012345",
+        "phone": "9849219999",
         "otp": "000000"
       },
       "reschedule": {
@@ -81,7 +83,7 @@
         "newMonth": "October",
         "newAppointmentDate": "1",
         "newTimeSlot": "first",
-        "newCarePackage": "Advanced"
+        "newCarePackage": "Gold"
       },
       "boundaries": {
         "blank": "",
@@ -91,24 +93,21 @@
       }
     },
     "carePackages": {
-      "basic": {
-        "name": "Basic",
-        "price": "INR 500",
-        "desc": "Basic care package"
+      "silver": {
+        "name": "Silver",
+        "price": "Free",
+        "desc": "Free consultation care package"
       },
-      "advanced": {
-        "name": "Advanced",
+      "gold": {
+        "name": "Gold",
         "price": "INR 1,500",
-        "desc": "Advanced care package"
+        "desc": "Gold tier care package"
       },
-      "premium": {
-        "name": "Premium",
+      "platinum": {
+        "name": "Platinum",
         "price": "INR 3,000",
-        "desc": "Premium care package"
-      },
-      "silver": "Basic",
-      "gold": "Advanced",
-      "platinum": "Premium"
+        "desc": "Platinum comprehensive care package"
+      }
     },
     "doctors": [
       "Dr.KVNN.Santhosh Murthy"
@@ -152,8 +151,8 @@
       },
       "pincode": {
         "valid6Digits": "520001",
-        "shortLength": "5200",
-        "invalidChars": "ABCDEF"
+        "validTirupati": "517541",
+        "validHyderabad": "500001"
       }
     },
     "expectedMessages": {
@@ -171,6 +170,21 @@
       "packageRequired": "Please choose a package to continue.",
       "slotRequired": "Please pick an available time slot.",
       "sendOtpFirst": "Please send OTP to your mobile first."
+    },
+    "whatsapp": {
+      "supportUrl": "https://wa.me/",
+      "phone": "+919849210050",
+      "defaultMessage": "Hi, I need assistance with hospital appointment booking."
+    },
+    "chatbot": {
+      "name": "Asha",
+      "title": "Talk to Asha",
+      "greeting": "Hello! How can I help you with your booking today?",
+      "sampleQuestions": [
+        "How do I book an appointment?",
+        "What are the available packages?",
+        "How can I reschedule my visit?"
+      ]
     }
   }
 }
